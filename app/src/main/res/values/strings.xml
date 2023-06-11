@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">ToDoApp</string>
+    <string name="app_name" translatable="false">ToDoApp</string>
+    <string name="my_business">My business</string>
 </resources>
