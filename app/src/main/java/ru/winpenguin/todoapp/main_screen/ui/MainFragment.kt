@@ -1,4 +1,4 @@
-package ru.winpenguin.todoapp
+package ru.winpenguin.todoapp.main_screen.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,9 +9,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import ru.winpenguin.todoapp.R
+import ru.winpenguin.todoapp.TodoAdapter
 import ru.winpenguin.todoapp.databinding.FragmentMainBinding
-import ru.winpenguin.todoapp.main_screen.ui.MainScreenViewModel
 
 class MainFragment : Fragment(R.layout.fragment_main) {
 
@@ -48,6 +50,10 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                         todoAdapter.submitList(screenState.todoItems)
                     }
             }
+        }
+
+        binding.addTodoButton.setOnClickListener {
+            findNavController().navigate(R.id.action_mainFragment_to_detailsFragment)
         }
     }
 

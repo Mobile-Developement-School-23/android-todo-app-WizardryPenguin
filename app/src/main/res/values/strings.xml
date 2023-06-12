@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">ToDoApp</string>
     <string name="my_business">My business</string>
+    <string name="save">Save</string>
+    <string name="what_to_do">What to do...</string>
+    <string name="importance">Importance</string>
+    <string name="deadline">Deadline</string>
+    <string name="delete">Delete</string>
 </resources>

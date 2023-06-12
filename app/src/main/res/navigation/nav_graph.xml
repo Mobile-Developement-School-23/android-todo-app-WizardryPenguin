@@ -8,6 +8,15 @@
     <fragment
         android:id="@+id/mainFragment"
         tools:layout="@layout/fragment_main"
-        android:name="ru.winpenguin.todoapp.MainFragment"
-        android:label="MainFragment" />
+        android:name="ru.winpenguin.todoapp.main_screen.ui.MainFragment"
+        android:label="MainFragment">
+        <action
+            android:id="@+id/action_mainFragment_to_detailsFragment"
+            app:destination="@id/detailsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/detailsFragment"
+        tools:layout="@layout/fragment_details"
+        android:name="ru.winpenguin.todoapp.details_screen.DetailsFragment"
+        android:label="DetailsFragment" />
 </navigation>
