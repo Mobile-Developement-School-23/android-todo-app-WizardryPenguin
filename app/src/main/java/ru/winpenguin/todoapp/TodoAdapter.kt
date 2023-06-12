@@ -1,14 +1,21 @@
 package ru.winpenguin.todoapp
 
 import android.content.Context
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.winpenguin.todoapp.databinding.TodoItemBinding
+import ru.winpenguin.todoapp.main_screen.ui.TodoItemUiState
 
-class TodoAdapter : ListAdapter<TodoItem, TodoItemViewHolder>(DiffItemCallback) {
+
+class TodoAdapter(
+    private val onItemChecked: (String, Boolean) -> Unit,
+) : ListAdapter<TodoItemUiState, TodoItemViewHolder>(DiffItemCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoItemViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -18,15 +25,18 @@ class TodoAdapter : ListAdapter<TodoItem, TodoItemViewHolder>(DiffItemCallback) 
 
     override fun onBindViewHolder(holder: TodoItemViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item)
+        holder.bind(item, onItemChecked)
     }
 
-    private companion object DiffItemCallback : ItemCallback<TodoItem>() {
-        override fun areItemsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {
+    private companion object DiffItemCallback : ItemCallback<TodoItemUiState>() {
+        override fun areItemsTheSame(oldItem: TodoItemUiState, newItem: TodoItemUiState): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: TodoItem, newItem: TodoItem): Boolean {
+        override fun areContentsTheSame(
+            oldItem: TodoItemUiState,
+            newItem: TodoItemUiState,
+        ): Boolean {
             return oldItem == newItem
         }
     }
@@ -38,9 +48,32 @@ class TodoItemViewHolder(private val binding: TodoItemBinding) :
     private val context: Context
         get() = binding.root.context
 
-    fun bind(model: TodoItem) {
-        binding.itemText.text = model.text
-        binding.itemCheckbox.isChecked = model.isDone
-//        binding.itemCheckbox.buttonTintList = ContextCompat.getColorStateList(context, )
+    fun bind(state: TodoItemUiState, onItemChecked: (String, Boolean) -> Unit) {
+        with(binding) {
+            itemCheckbox.isChecked = state.isChecked
+            itemCheckbox.buttonTintList =
+                ContextCompat.getColorStateList(context, state.checkBoxColorRes)
+            itemCheckbox.setOnClickListener {
+                onItemChecked(state.id, itemCheckbox.isChecked)
+            }
+
+            itemText.setTextColor(ContextCompat.getColor(context, state.textColorRes))
+            if (state.isStrikedThrough) {
+                itemText.paintFlags = itemText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            } else {
+                itemText.paintFlags = itemText.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            }
+            itemText.text = state.text
+
+            if (state.priorityIconRes != null) {
+                priorityIcon.isVisible = true
+                priorityIcon.setImageResource(state.priorityIconRes)
+            } else {
+                priorityIcon.isVisible = false
+            }
+
+            additionalText.text = state.additionalText
+            additionalText.isVisible = !state.additionalText.isNullOrBlank()
+        }
     }
 }

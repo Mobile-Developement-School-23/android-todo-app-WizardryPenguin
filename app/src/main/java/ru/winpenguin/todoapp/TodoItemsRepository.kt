@@ -1,18 +1,44 @@
 package ru.winpenguin.todoapp
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
 
 class TodoItemsRepository {
 
-    private val items = mutableListOf<TodoItem>()
+    private val _items = MutableStateFlow<List<TodoItem>>(mockedItems)
+    val items: StateFlow<List<TodoItem>> = _items.asStateFlow()
 
-    init {
-        items.addAll(mockedItems)
+    private fun getItems(): List<TodoItem> {
+        return _items.value
     }
 
-    fun getItems(): List<TodoItem> {
-        return items.toList()
+    fun addItem(item: TodoItem) {
+        _items.update {
+            _items.value + item
+        }
+    }
+
+    fun getById(id: String): TodoItem? {
+        return getItems().find { it.id == id }
+    }
+
+    fun updateItem(updatedItem: TodoItem) {
+        _items.update {
+            val itemsList = _items.value.toMutableList()
+            val index = itemsList.indexOfFirst { item -> item.id == updatedItem.id }
+            if (index == -1) {
+                return@update _items.value
+            }
+
+            itemsList.removeAt(index)
+            itemsList.add(index, updatedItem)
+            itemsList.toList()
+        }
     }
 
     private companion object {
@@ -30,10 +56,11 @@ class TodoItemsRepository {
                 importance = Importance.NORMAL,
                 isDone = false,
                 creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 10, 20, 0),
+                deadline = LocalDate.now().minusDays(1)
             ),
             TodoItem(
                 id = "3",
-                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно, но точно чтобы показать как обрезается",
+                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно, но точно чтобы показать как обрезается длинный длинный текст",
                 importance = Importance.HIGH,
                 isDone = false,
                 creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 13, 2, 0),

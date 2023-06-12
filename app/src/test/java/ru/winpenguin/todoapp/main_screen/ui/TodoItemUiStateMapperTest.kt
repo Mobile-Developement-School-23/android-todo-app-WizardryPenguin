@@ -10,10 +10,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
 
-class UiTodoItemMapperTest {
+class TodoItemUiStateMapperTest {
 
     private val dateFormatter = DateFormatter(locale = RUSSIAN_LOCALE)
-    private val sut = UiTodoItemMapper(dateFormatter)
+    private val sut = TodoItemUiStateMapper(dateFormatter)
 
     @Test
     fun `map not done item with low importance`() {
@@ -25,20 +25,20 @@ class UiTodoItemMapperTest {
             creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0)
         )
 
-        val uiItem = sut.map(item)
+        val uiState = sut.map(item)
 
         assertEquals(
-            UiTodoItem(
+            TodoItemUiState(
                 id = "1",
                 isChecked = false,
                 checkBoxColorRes = R.color.checkbox_usual_colors,
                 text = "Text",
                 textColorRes = R.color.label_primary,
                 isStrikedThrough = false,
-                leadIconRes = R.drawable.low_priority,
+                priorityIconRes = R.drawable.low_priority,
                 additionalText = null
             ),
-            uiItem
+            uiState
         )
     }
 
@@ -54,20 +54,20 @@ class UiTodoItemMapperTest {
             deadline = LocalDate.of(2023, Month.JUNE, 7)
         )
 
-        val uiItem = sut.map(item, today)
+        val uiState = sut.map(item, today)
 
         assertEquals(
-            UiTodoItem(
+            TodoItemUiState(
                 id = "1",
                 isChecked = true,
                 checkBoxColorRes = R.color.checkbox_usual_colors,
                 text = "Text",
                 textColorRes = R.color.label_tertiary,
                 isStrikedThrough = true,
-                leadIconRes = R.drawable.high_priority,
+                priorityIconRes = R.drawable.high_priority,
                 additionalText = "7 июня 2023"
             ),
-            uiItem
+            uiState
         )
     }
 
@@ -83,20 +83,20 @@ class UiTodoItemMapperTest {
             deadline = LocalDate.of(2023, Month.JUNE, 2)
         )
 
-        val uiItem = sut.map(item, today)
+        val uiState = sut.map(item, today)
 
         assertEquals(
-            UiTodoItem(
+            TodoItemUiState(
                 id = "1",
                 isChecked = false,
                 checkBoxColorRes = R.color.checkbox_passed_deadline_colors,
                 text = "Text",
                 textColorRes = R.color.label_primary,
                 isStrikedThrough = false,
-                leadIconRes = null,
+                priorityIconRes = null,
                 additionalText = "2 июня 2023"
             ),
-            uiItem
+            uiState
         )
     }
 }
