@@ -8,7 +8,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.TodoApp
-import ru.winpenguin.todoapp.TodoItemsRepository
+import ru.winpenguin.todoapp.data.TodoItemsRepository
+import ru.winpenguin.todoapp.utils.DateFormatter
 
 class MainScreenViewModel(
     private val repository: TodoItemsRepository,

@@ -1,4 +1,4 @@
-package ru.winpenguin.todoapp.main_screen.ui
+package ru.winpenguin.todoapp.utils
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

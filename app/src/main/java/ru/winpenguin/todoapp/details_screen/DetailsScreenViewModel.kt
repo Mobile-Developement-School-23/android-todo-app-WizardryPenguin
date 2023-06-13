@@ -3,18 +3,34 @@ package ru.winpenguin.todoapp.details_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
-import ru.winpenguin.todoapp.Importance
-import ru.winpenguin.todoapp.TodoApp
-import ru.winpenguin.todoapp.TodoItem
-import ru.winpenguin.todoapp.TodoItemsRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import ru.winpenguin.todoapp.*
+import ru.winpenguin.todoapp.data.TodoItemsRepository
+import ru.winpenguin.todoapp.domain.models.Deadline
+import ru.winpenguin.todoapp.domain.models.Importance
+import ru.winpenguin.todoapp.domain.models.TodoItem
+import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.LocalDateTime
 import java.util.*
 
 class DetailsScreenViewModel(
     private val repository: TodoItemsRepository,
+    private val dateFormatter: DateFormatter,
 ) : ViewModel() {
 
     private var importance: Importance = Importance.NORMAL
+
+    private val _deadlineFlow = MutableStateFlow<Deadline>(Deadline.NotSelected())
+    val formattedDeadlineFlow
+        get() = _deadlineFlow.map { deadline ->
+            when (deadline) {
+                is Deadline.NotSelected -> null
+                is Deadline.Selected -> dateFormatter.formatDate(deadline.date)
+            }
+        }
+    val deadline: Deadline
+        get() = _deadlineFlow.value
 
     fun saveTodoItem(text: String) {
         val newItem = TodoItem(
@@ -23,7 +39,7 @@ class DetailsScreenViewModel(
             importance = importance,
             isDone = false,
             creationDate = LocalDateTime.now(),
-            deadline = null
+            deadline = deadline
         )
         repository.addItem(newItem)
     }
@@ -37,6 +53,18 @@ class DetailsScreenViewModel(
         }
     }
 
+    fun selectDeadline(deadline: Deadline) {
+        _deadlineFlow.value = deadline
+    }
+
+    fun cancelDeadlineSelection() {
+        _deadlineFlow.value = Deadline.NotSelected()
+    }
+
+    fun clearDeadline() {
+        _deadlineFlow.value = Deadline.NotSelected()
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
 
@@ -47,9 +75,11 @@ class DetailsScreenViewModel(
                 val repository = (application as TodoApp).todoItemsRepository
 
                 return DetailsScreenViewModel(
-                    repository
+                    repository,
+                    DateFormatter()
                 ) as T
             }
         }
     }
 }
+

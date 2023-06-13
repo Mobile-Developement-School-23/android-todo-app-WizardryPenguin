@@ -3,6 +3,7 @@ package ru.winpenguin.todoapp.main_screen.ui
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import ru.winpenguin.todoapp.TestLocales.RUSSIAN_LOCALE
+import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.LocalDate
 import java.time.Month
 

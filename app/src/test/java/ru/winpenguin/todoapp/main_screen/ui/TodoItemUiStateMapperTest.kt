@@ -2,10 +2,12 @@ package ru.winpenguin.todoapp.main_screen.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import ru.winpenguin.todoapp.Importance
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.TestLocales.RUSSIAN_LOCALE
-import ru.winpenguin.todoapp.TodoItem
+import ru.winpenguin.todoapp.domain.models.Deadline
+import ru.winpenguin.todoapp.domain.models.Importance
+import ru.winpenguin.todoapp.domain.models.TodoItem
+import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
@@ -51,7 +53,7 @@ class TodoItemUiStateMapperTest {
             text = "Text",
             importance = Importance.HIGH,
             creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            deadline = LocalDate.of(2023, Month.JUNE, 7)
+            deadline = Deadline.Selected(LocalDate.of(2023, Month.JUNE, 7))
         )
 
         val uiState = sut.map(item, today)
@@ -80,7 +82,7 @@ class TodoItemUiStateMapperTest {
             text = "Text",
             importance = Importance.NORMAL,
             creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            deadline = LocalDate.of(2023, Month.JUNE, 2)
+            deadline = Deadline.Selected(LocalDate.of(2023, Month.JUNE, 2))
         )
 
         val uiState = sut.map(item, today)

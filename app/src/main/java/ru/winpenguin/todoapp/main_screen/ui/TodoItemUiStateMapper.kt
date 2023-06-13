@@ -1,8 +1,10 @@
 package ru.winpenguin.todoapp.main_screen.ui
 
-import ru.winpenguin.todoapp.Importance
 import ru.winpenguin.todoapp.R
-import ru.winpenguin.todoapp.TodoItem
+import ru.winpenguin.todoapp.domain.models.Deadline
+import ru.winpenguin.todoapp.domain.models.Importance
+import ru.winpenguin.todoapp.domain.models.TodoItem
+import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.LocalDate
 
 class TodoItemUiStateMapper(
@@ -20,10 +22,16 @@ class TodoItemUiStateMapper(
         return TodoItemUiState(
             id = item.id,
             isChecked = item.isDone,
-            checkBoxColorRes = if (item.deadline == null || item.deadline.isAfter(today)) {
-                R.color.checkbox_usual_colors
-            } else {
-                R.color.checkbox_passed_deadline_colors
+            checkBoxColorRes = when {
+                item.deadline is Deadline.NotSelected -> {
+                    R.color.checkbox_usual_colors
+                }
+                item.deadline is Deadline.Selected && item.deadline.date.isAfter(today) -> {
+                    R.color.checkbox_usual_colors
+                }
+                else -> {
+                    R.color.checkbox_passed_deadline_colors
+                }
             },
             text = item.text,
             textColorRes = if (item.isDone) R.color.label_tertiary else R.color.label_primary,
@@ -33,7 +41,10 @@ class TodoItemUiStateMapper(
                 Importance.NORMAL -> null
                 Importance.HIGH -> R.drawable.high_priority
             },
-            additionalText = if (item.deadline == null) null else dateFormatter.formatDate(item.deadline)
+            additionalText = when (item.deadline) {
+                is Deadline.NotSelected -> null
+                is Deadline.Selected -> dateFormatter.formatDate(item.deadline.date)
+            }
         )
     }
 }

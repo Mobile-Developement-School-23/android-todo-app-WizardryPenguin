@@ -1,9 +1,12 @@
-package ru.winpenguin.todoapp
+package ru.winpenguin.todoapp.data
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import ru.winpenguin.todoapp.domain.models.Deadline
+import ru.winpenguin.todoapp.domain.models.Importance
+import ru.winpenguin.todoapp.domain.models.TodoItem
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
@@ -41,6 +44,21 @@ class TodoItemsRepository {
         }
     }
 
+    fun removeItem(id: String) {
+        _items.update {
+            val currentItems = getItems().toMutableList()
+            val index = currentItems.indexOfFirst { it.id == id }
+            if (index == -1) {
+                return@update getItems()
+            }
+
+            currentItems.removeAt(index)
+            currentItems.toList()
+
+        }
+    }
+
+
     private companion object {
         val mockedItems = listOf(
             TodoItem(
@@ -56,7 +74,7 @@ class TodoItemsRepository {
                 importance = Importance.NORMAL,
                 isDone = false,
                 creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 10, 20, 0),
-                deadline = LocalDate.now().minusDays(1)
+                deadline = Deadline.Selected(LocalDate.now().minusDays(1))
             ),
             TodoItem(
                 id = "3",

@@ -1,6 +1,5 @@
-package ru.winpenguin.todoapp
+package ru.winpenguin.todoapp.domain.models
 
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class TodoItem(
@@ -10,5 +9,5 @@ data class TodoItem(
     val isDone: Boolean,
     val creationDate: LocalDateTime,
     val changeDate: LocalDateTime? = null,
-    val deadline: LocalDate? = null,
+    val deadline: Deadline = Deadline.NotSelected(),
 )

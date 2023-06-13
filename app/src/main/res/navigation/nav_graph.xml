@@ -18,5 +18,13 @@
         android:id="@+id/detailsFragment"
         tools:layout="@layout/fragment_details"
         android:name="ru.winpenguin.todoapp.details_screen.DetailsFragment"
-        android:label="DetailsFragment" />
+        android:label="DetailsFragment">
+        <action
+            android:id="@+id/action_detailsFragment_to_datePickerFragment"
+            app:destination="@id/datePickerFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/datePickerFragment"
+        android:name="ru.winpenguin.todoapp.details_screen.DatePickerFragment"
+        android:label="DatePickerFragment" />
 </navigation>

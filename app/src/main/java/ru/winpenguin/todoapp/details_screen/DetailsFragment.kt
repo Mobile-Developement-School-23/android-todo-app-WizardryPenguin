@@ -5,15 +5,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentDetailsBinding
+import ru.winpenguin.todoapp.domain.models.Deadline
 
 class DetailsFragment : Fragment() {
 
-    private val viewModel by viewModels<DetailsScreenViewModel> {
+    private val viewModel by activityViewModels<DetailsScreenViewModel> {
         DetailsScreenViewModel.Factory
     }
 
@@ -38,6 +44,24 @@ class DetailsFragment : Fragment() {
         }
 
         initSpinner()
+
+        binding.deadlineSwitch.setOnClickListener {
+            when (viewModel.deadline) {
+                is Deadline.NotSelected -> findNavController().navigate(R.id.datePickerFragment)
+                is Deadline.Selected -> viewModel.clearDeadline()
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.formattedDeadlineFlow
+                    .collect { deadline ->
+                        binding.deadlineSwitch.isChecked = deadline != null
+                        binding.deadlineDate.isVisible = deadline != null
+                        binding.deadlineDate.text = deadline
+                    }
+            }
+        }
     }
 
     private fun initSpinner() {
