@@ -43,6 +43,10 @@ class DetailsFragment : Fragment() {
             findNavController().popBackStack()
         }
 
+        binding.closeButton.setOnClickListener {
+            findNavController().popBackStack()
+        }
+
         initSpinner()
 
         binding.deadlineSwitch.setOnClickListener {
