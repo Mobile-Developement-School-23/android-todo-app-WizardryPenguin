@@ -9,4 +9,5 @@
     <string name="none">Нет</string>
     <string name="low">Низкая</string>
     <string name="high">Высокая</string>
+    <string name="done_count">Выполнено — %1$d</string>
 </resources>

@@ -24,7 +24,17 @@ class MainScreenViewModel(
                 .map { items -> mapper.map(items) }
                 .collect { items ->
                     _uiState.update {
-                        _uiState.value.copy(todoItems = items)
+                        it.copy(todoItems = items)
+                    }
+                }
+        }
+
+        viewModelScope.launch {
+            repository.items
+                .map { items -> items.count { it.isDone } }
+                .collect { doneItems ->
+                    _uiState.update {
+                        it.copy(doneItemsCount = doneItems)
                     }
                 }
         }

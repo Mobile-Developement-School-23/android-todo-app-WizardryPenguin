@@ -9,6 +9,7 @@
     <string name="none">None</string>
     <string name="low">Low</string>
     <string name="high">High</string>
+    <string name="done_count">Done — %1$d</string>
 
     <string-array name="importances">
         <item>@string/none</item>

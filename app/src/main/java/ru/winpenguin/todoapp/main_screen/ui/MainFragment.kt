@@ -47,6 +47,8 @@ class MainFragment : Fragment() {
                 viewModel.uiState
                     .collect { screenState ->
                         todoAdapter.submitList(screenState.todoItems)
+                        binding.doneItemsSubtitle.text =
+                            getString(R.string.done_count, screenState.doneItemsCount)
                     }
             }
         }
