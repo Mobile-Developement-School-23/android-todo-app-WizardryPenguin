@@ -6,4 +6,13 @@
     <string name="importance">Importance</string>
     <string name="deadline">Deadline</string>
     <string name="delete">Delete</string>
+    <string name="none">None</string>
+    <string name="low">Low</string>
+    <string name="high">High</string>
+
+    <string-array name="importances">
+        <item>@string/none</item>
+        <item>@string/low</item>
+        <item>@string/high</item>
+    </string-array>
 </resources>

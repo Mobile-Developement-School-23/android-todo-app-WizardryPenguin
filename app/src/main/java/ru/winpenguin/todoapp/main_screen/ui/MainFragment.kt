@@ -12,10 +12,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
-import ru.winpenguin.todoapp.TodoAdapter
 import ru.winpenguin.todoapp.databinding.FragmentMainBinding
 
-class MainFragment : Fragment(R.layout.fragment_main) {
+class MainFragment : Fragment() {
 
     private val viewModel by viewModels<MainScreenViewModel> {
         MainScreenViewModel.Factory

@@ -1,4 +1,4 @@
-package ru.winpenguin.todoapp
+package ru.winpenguin.todoapp.main_screen.ui
 
 import android.content.Context
 import android.graphics.Paint
@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.winpenguin.todoapp.databinding.TodoItemBinding
-import ru.winpenguin.todoapp.main_screen.ui.TodoItemUiState
 
 
 class TodoAdapter(
