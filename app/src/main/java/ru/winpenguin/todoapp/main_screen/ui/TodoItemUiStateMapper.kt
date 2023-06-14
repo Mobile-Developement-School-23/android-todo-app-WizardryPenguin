@@ -34,7 +34,7 @@ class TodoItemUiStateMapper(
                 }
             },
             text = item.text,
-            textColorRes = if (item.isDone) R.color.label_tertiary else R.color.label_primary,
+            textColorAttr = if (item.isDone) R.attr.labelTertiary else R.attr.labelPrimary,
             isStrikedThrough = item.isDone,
             priorityIconRes = when (item.importance) {
                 Importance.LOW -> R.drawable.low_priority

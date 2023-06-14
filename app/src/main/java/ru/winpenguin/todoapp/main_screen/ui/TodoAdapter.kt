@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.winpenguin.todoapp.databinding.TodoItemBinding
+import ru.winpenguin.todoapp.utils.getColorFromAttr
 
 
 class TodoAdapter(
@@ -69,7 +70,7 @@ class TodoItemViewHolder(private val binding: TodoItemBinding) :
                 onItemClicked(state.id)
             }
 
-            itemText.setTextColor(ContextCompat.getColor(context, state.textColorRes))
+            itemText.setTextColor(context.getColorFromAttr(state.textColorAttr))
             if (state.isStrikedThrough) {
                 itemText.paintFlags = itemText.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             } else {

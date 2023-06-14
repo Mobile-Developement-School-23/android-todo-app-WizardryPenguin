@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/back_primary"
+    android:background="?attr/bgPrimary"
     android:orientation="vertical">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:elevation="4dp"
-        android:background="@color/back_primary">
+        android:background="?attr/bgPrimary">
 
         <ImageView
             android:id="@+id/close_button"
@@ -34,7 +34,7 @@
             android:paddingEnd="16dp"
             android:text="@string/save"
             android:textAllCaps="true"
-            android:textColor="@color/blue"
+            android:textColor="?attr/blue"
             android:textSize="14sp"
             tools:text="Сохранить" />
 
@@ -61,8 +61,8 @@
                 android:hint="@string/what_to_do"
                 android:minHeight="104dp"
                 android:padding="16dp"
-                android:textColor="@color/label_primary"
-                android:textColorHint="@color/label_tertiary"
+                android:textColor="?attr/labelPrimary"
+                android:textColorHint="?attr/labelTertiary"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -76,7 +76,6 @@
                 android:layout_marginTop="28dp"
                 android:fontFamily="@font/roboto_regular"
                 android:text="@string/importance"
-                android:textColor="@color/label_primary"
                 android:textSize="16sp"
                 app:layout_constrainedWidth="true"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -102,7 +101,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                android:background="@color/separator"
+                android:background="?attr/separator"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/importance_spinner" />
@@ -115,7 +114,6 @@
                 android:layout_marginTop="26dp"
                 android:fontFamily="@font/roboto_regular"
                 android:text="@string/deadline"
-                android:textColor="@color/label_primary"
                 android:textSize="16sp"
                 app:layout_constrainedWidth="true"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -130,7 +128,7 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="4dp"
                 android:fontFamily="@font/roboto_regular"
-                android:textColor="@color/blue"
+                android:textColor="?attr/blue"
                 android:textSize="14sp"
                 android:visibility="gone"
                 app:layout_constrainedWidth="true"
@@ -155,7 +153,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
-                android:background="@color/separator"
+                android:background="?attr/separator"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/deadline_switch" />

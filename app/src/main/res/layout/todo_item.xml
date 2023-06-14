@@ -34,7 +34,6 @@
             android:ellipsize="end"
             android:fontFamily="@font/roboto_regular"
             android:maxLines="3"
-            android:textColor="@color/label_primary"
             android:textSize="16sp"
             tools:text="Купить что-то" />
 
@@ -42,9 +41,11 @@
             android:id="@+id/additional_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:fontFamily="@font/roboto_regular"
-            android:textColor="@color/label_tertiary"
+            android:textColor="?attr/labelTertiary"
             android:textSize="14sp"
+            android:layout_marginBottom="14dp"
             tools:text="7 июня 2023" />
 
     </LinearLayout>

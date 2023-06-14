@@ -35,7 +35,7 @@ class TodoItemUiStateMapperTest {
                 isChecked = false,
                 checkBoxColorRes = R.color.checkbox_usual_colors,
                 text = "Text",
-                textColorRes = R.color.label_primary,
+                textColorAttr = R.color.light_label_primary,
                 isStrikedThrough = false,
                 priorityIconRes = R.drawable.low_priority,
                 additionalText = null
@@ -64,7 +64,7 @@ class TodoItemUiStateMapperTest {
                 isChecked = true,
                 checkBoxColorRes = R.color.checkbox_usual_colors,
                 text = "Text",
-                textColorRes = R.color.label_tertiary,
+                textColorAttr = R.color.light_label_tertiary,
                 isStrikedThrough = true,
                 priorityIconRes = R.drawable.high_priority,
                 additionalText = "7 июня 2023"
@@ -93,7 +93,7 @@ class TodoItemUiStateMapperTest {
                 isChecked = false,
                 checkBoxColorRes = R.color.checkbox_passed_deadline_colors,
                 text = "Text",
-                textColorRes = R.color.label_primary,
+                textColorAttr = R.color.light_label_primary,
                 isStrikedThrough = false,
                 priorityIconRes = null,
                 additionalText = "2 июня 2023"

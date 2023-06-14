@@ -31,11 +31,11 @@ class TodoItemsRepository {
     }
 
     fun updateItem(updatedItem: TodoItem) {
-        _items.update {
-            val itemsList = _items.value.toMutableList()
+        _items.update { oldItems ->
+            val itemsList = oldItems.toMutableList()
             val index = itemsList.indexOfFirst { item -> item.id == updatedItem.id }
             if (index == -1) {
-                return@update _items.value
+                return@update oldItems
             }
 
             itemsList.removeAt(index)
@@ -57,7 +57,6 @@ class TodoItemsRepository {
 
         }
     }
-
 
     private companion object {
         val mockedItems = listOf(
@@ -147,6 +146,77 @@ class TodoItemsRepository {
                 importance = Importance.LOW,
                 isDone = true,
                 creationDate = LocalDateTime.of(2023, Month.JUNE, 3, 12, 0, 0),
+            ),
+            TodoItem(
+                id = "13",
+                text = "Купить что-то",
+                importance = Importance.LOW,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
+            ),
+            TodoItem(
+                id = "14",
+                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно",
+                importance = Importance.NORMAL,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 10, 20, 0),
+                deadline = Deadline.Selected(LocalDate.now().minusDays(1))
+            ),
+            TodoItem(
+                id = "15",
+                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно, но точно чтобы показать как обрезается длинный длинный текст",
+                importance = Importance.HIGH,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 13, 2, 0),
+            ),
+            TodoItem(
+                id = "16",
+                text = "Продать что-то",
+                importance = Importance.NORMAL,
+                isDone = true,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 2, 12, 0, 0),
+            ),
+            TodoItem(
+                id = "17",
+                text = "Посмотреть сериал",
+                importance = Importance.HIGH,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.MAY, 27, 13, 4, 0),
+            ),
+            TodoItem(
+                id = "18",
+                text = "Погладить кошку",
+                importance = Importance.HIGH,
+                isDone = true,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 5, 11, 0, 0),
+            ),
+            TodoItem(
+                id = "19",
+                text = "Купить продукты",
+                importance = Importance.LOW,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
+            ),
+            TodoItem(
+                id = "20",
+                text = "Погулять в парке",
+                importance = Importance.LOW,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 12, 0, 0),
+            ),
+            TodoItem(
+                id = "21",
+                text = "Сходить на тренировку",
+                importance = Importance.LOW,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
+            ),
+            TodoItem(
+                id = "22",
+                text = "Пополнить тройку",
+                importance = Importance.LOW,
+                isDone = false,
+                creationDate = LocalDateTime.of(2023, Month.JUNE, 8, 12, 0, 0),
             ),
         )
     }
