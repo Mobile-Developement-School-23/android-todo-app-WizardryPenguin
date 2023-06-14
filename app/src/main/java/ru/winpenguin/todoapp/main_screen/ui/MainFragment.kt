@@ -37,9 +37,14 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        todoAdapter = TodoAdapter { id, isChecked ->
-            viewModel.changeCheckedState(id, isChecked)
-        }
+        todoAdapter = TodoAdapter(
+            onItemChecked = { id, isChecked ->
+                viewModel.changeCheckedState(id, isChecked)
+            },
+            onItemClicked = { id ->
+                openDetailsScreen(id)
+            }
+        )
         binding.todoList.adapter = todoAdapter
 
         lifecycleScope.launch {
@@ -54,8 +59,13 @@ class MainFragment : Fragment() {
         }
 
         binding.addTodoButton.setOnClickListener {
-            findNavController().navigate(R.id.action_mainFragment_to_detailsFragment)
+            openDetailsScreen()
         }
+    }
+
+    private fun openDetailsScreen(id: String? = null) {
+        val action = MainFragmentDirections.actionMainFragmentToDetailsFragment(id)
+        findNavController().navigate(action)
     }
 
     override fun onDestroyView() {

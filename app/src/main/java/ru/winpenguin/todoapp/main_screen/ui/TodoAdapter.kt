@@ -14,6 +14,7 @@ import ru.winpenguin.todoapp.databinding.TodoItemBinding
 
 class TodoAdapter(
     private val onItemChecked: (String, Boolean) -> Unit,
+    private val onItemClicked: (String) -> Unit,
 ) : ListAdapter<TodoItemUiState, TodoItemViewHolder>(DiffItemCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoItemViewHolder {
@@ -24,7 +25,11 @@ class TodoAdapter(
 
     override fun onBindViewHolder(holder: TodoItemViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, onItemChecked)
+        holder.bind(
+            state = item,
+            onItemChecked = onItemChecked,
+            onItemClicked = onItemClicked
+        )
     }
 
     private companion object DiffItemCallback : ItemCallback<TodoItemUiState>() {
@@ -47,13 +52,21 @@ class TodoItemViewHolder(private val binding: TodoItemBinding) :
     private val context: Context
         get() = binding.root.context
 
-    fun bind(state: TodoItemUiState, onItemChecked: (String, Boolean) -> Unit) {
+    fun bind(
+        state: TodoItemUiState,
+        onItemChecked: (String, Boolean) -> Unit,
+        onItemClicked: (String) -> Unit
+    ) {
         with(binding) {
             itemCheckbox.isChecked = state.isChecked
             itemCheckbox.buttonTintList =
                 ContextCompat.getColorStateList(context, state.checkBoxColorRes)
             itemCheckbox.setOnClickListener {
                 onItemChecked(state.id, itemCheckbox.isChecked)
+            }
+
+            root.setOnClickListener {
+                onItemClicked(state.id)
             }
 
             itemText.setTextColor(ContextCompat.getColor(context, state.textColorRes))

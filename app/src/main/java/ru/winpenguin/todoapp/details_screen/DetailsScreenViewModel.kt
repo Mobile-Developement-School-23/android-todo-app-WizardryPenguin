@@ -3,8 +3,7 @@ package ru.winpenguin.todoapp.details_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import ru.winpenguin.todoapp.*
 import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.domain.models.Deadline
@@ -16,14 +15,20 @@ import java.util.*
 
 class DetailsScreenViewModel(
     private val repository: TodoItemsRepository,
-    private val dateFormatter: DateFormatter,
+    private val mapper: DetailsScreenUiStateMapper,
+    private val dateFormatter: DateFormatter
 ) : ViewModel() {
 
-    private var importance: Importance = Importance.NORMAL
+    private var itemId: String? = null
+
+    private val _uiState = MutableStateFlow(DetailsScreenUiState())
+    val uiState: StateFlow<DetailsScreenUiState>
+        get() = _uiState.asStateFlow()
 
     private val _deadlineFlow = MutableStateFlow<Deadline>(Deadline.NotSelected())
-    val formattedDeadlineFlow
-        get() = _deadlineFlow.map { deadline ->
+    val deadlineFlow = _deadlineFlow
+        .asStateFlow()
+        .map { deadline ->
             when (deadline) {
                 is Deadline.NotSelected -> null
                 is Deadline.Selected -> dateFormatter.formatDate(deadline.date)
@@ -33,27 +38,45 @@ class DetailsScreenViewModel(
         get() = _deadlineFlow.value
 
     fun saveTodoItem(text: String) {
-        val newItem = TodoItem(
-            id = UUID.randomUUID().toString(),
-            text = text,
-            importance = importance,
-            isDone = false,
-            creationDate = LocalDateTime.now(),
-            deadline = deadline
-        )
-        repository.addItem(newItem)
-    }
-
-    fun changeImportance(position: Int) {
-        importance = when (position) {
-            0 -> Importance.NORMAL
-            1 -> Importance.LOW
-            2 -> Importance.HIGH
-            else -> importance
+        val id = itemId
+        if (id == null) {
+            val newItem = TodoItem(
+                id = UUID.randomUUID().toString(),
+                text = text,
+                importance = _uiState.value.importance,
+                isDone = false,
+                creationDate = LocalDateTime.now(),
+                deadline = deadline
+            )
+            repository.addItem(newItem)
+        } else {
+            val item = repository.getById(id)
+            if (item != null) {
+                repository.updateItem(
+                    item.copy(
+                        text = uiState.value.text,
+                        importance = uiState.value.importance,
+                        changeDate = LocalDateTime.now(),
+                        deadline = deadline
+                    )
+                )
+            }
         }
     }
 
-    fun selectDeadline(deadline: Deadline) {
+    fun changeImportance(position: Int) {
+        val importance = when (position) {
+            0 -> Importance.NORMAL
+            1 -> Importance.LOW
+            2 -> Importance.HIGH
+            else -> _uiState.value.importance
+        }
+        _uiState.update {
+            it.copy(importance = importance)
+        }
+    }
+
+    fun selectDeadline(deadline: Deadline.Selected) {
         _deadlineFlow.value = deadline
     }
 
@@ -63,6 +86,21 @@ class DetailsScreenViewModel(
 
     fun clearDeadline() {
         _deadlineFlow.value = Deadline.NotSelected()
+    }
+
+    fun updateCurrentItemId(itemId: String?) {
+        this.itemId = itemId
+        val item = if (itemId == null) null else repository.getById(itemId)
+        val state = mapper.map(item)
+        _uiState.value = state
+
+        _deadlineFlow.value = item?.deadline ?: Deadline.NotSelected()
+    }
+
+    fun textChanged(text: CharSequence?) {
+        _uiState.update {
+            it.copy(text = text?.toString().orEmpty())
+        }
     }
 
     companion object {
@@ -76,10 +114,10 @@ class DetailsScreenViewModel(
 
                 return DetailsScreenViewModel(
                     repository,
+                    DetailsScreenUiStateMapper(),
                     DateFormatter()
                 ) as T
             }
         }
     }
 }
-
