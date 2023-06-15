@@ -54,10 +54,14 @@ class MainFragment : Fragment() {
                         todoAdapter.submitList(screenState.todoItems)
                         binding.doneItemsSubtitle.text =
                             getString(R.string.done_count, screenState.doneItemsCount)
+                        binding.ivVisibility.setImageResource(screenState.visibilityImageRes)
                     }
             }
         }
 
+        binding.ivVisibility.setOnClickListener {
+            viewModel.changeItemsVisibility()
+        }
         binding.addTodoButton.setOnClickListener {
             openDetailsScreen()
         }

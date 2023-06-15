@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.TodoApp
 import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.utils.DateFormatter
@@ -15,17 +16,29 @@ class MainScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: TodoItemUiStateMapper,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(MainScreenUiState())
-    val uiState: StateFlow<MainScreenUiState> = _uiState.asStateFlow()
+
+    private val doneItemsCount = MutableStateFlow(0)
+    private val isDoneItemsVisible = MutableStateFlow(false)
+    private val todoItems = MutableStateFlow<List<TodoItemUiState>>(emptyList())
+
+    val uiState: Flow<MainScreenUiState> = combine(
+        doneItemsCount,
+        isDoneItemsVisible,
+        todoItems
+    ) { doneItemsCount, isDoneItemsVisible, todoItems ->
+        MainScreenUiState(
+            doneItemsCount = doneItemsCount,
+            todoItems = if (isDoneItemsVisible) todoItems else todoItems.filterNot { it.isChecked },
+            visibilityImageRes = if (isDoneItemsVisible) R.drawable.visibility else R.drawable.visibility_off
+        )
+    }
 
     init {
         viewModelScope.launch {
             repository.items
                 .map { items -> mapper.map(items) }
                 .collect { items ->
-                    _uiState.update {
-                        it.copy(todoItems = items)
-                    }
+                    todoItems.value = items
                 }
         }
 
@@ -33,9 +46,7 @@ class MainScreenViewModel(
             repository.items
                 .map { items -> items.count { it.isDone } }
                 .collect { doneItems ->
-                    _uiState.update {
-                        it.copy(doneItemsCount = doneItems)
-                    }
+                    doneItemsCount.value = doneItems
                 }
         }
     }
@@ -44,6 +55,12 @@ class MainScreenViewModel(
         val item = repository.getById(id)
         if (item != null) {
             repository.updateItem(item.copy(isDone = isChecked))
+        }
+    }
+
+    fun changeItemsVisibility() {
+        isDoneItemsVisible.update { isVisible ->
+            !isVisible
         }
     }
 
