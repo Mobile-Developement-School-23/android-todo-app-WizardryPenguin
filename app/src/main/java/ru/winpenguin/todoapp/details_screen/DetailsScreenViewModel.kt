@@ -103,6 +103,13 @@ class DetailsScreenViewModel(
         }
     }
 
+    fun removeTodoItem() {
+        val id = itemId
+        if (id != null) {
+            repository.removeItem(id)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
 

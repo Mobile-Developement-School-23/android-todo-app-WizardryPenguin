@@ -53,6 +53,10 @@ class DetailsFragment : Fragment() {
         binding.closeButton.setOnClickListener {
             findNavController().popBackStack()
         }
+        binding.removeButton.setOnClickListener {
+            viewModel.removeTodoItem()
+            findNavController().popBackStack()
+        }
 
         initSpinner()
 
