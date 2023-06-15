@@ -10,8 +10,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:elevation="4dp"
-        android:background="?attr/bgPrimary">
+        android:background="?attr/bgPrimary"
+        android:elevation="4dp">
 
         <ImageView
             android:id="@+id/close_button"
@@ -42,7 +42,8 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:overScrollMode="never">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -163,6 +164,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:layout_marginBottom="61dp"
                 android:drawablePadding="12dp"
                 android:fontFamily="@font/roboto_regular"
                 android:gravity="center_vertical|start"
@@ -175,11 +177,10 @@
                 android:textSize="16sp"
                 app:drawableStartCompat="@drawable/delete"
                 app:drawableTint="@color/remove_text_button_colors"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/divider_2"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintVertical_bias="0.0"
-                android:layout_marginBottom="61dp" />
+                app:layout_constraintVertical_bias="0.0" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
