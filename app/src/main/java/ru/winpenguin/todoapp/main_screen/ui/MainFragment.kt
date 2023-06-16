@@ -10,6 +10,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.ItemTouchHelper.LEFT
+import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentMainBinding
@@ -35,7 +39,6 @@ class MainFragment : Fragment() {
 
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -48,6 +51,7 @@ class MainFragment : Fragment() {
             }
         )
         binding.todoList.adapter = todoAdapter
+        initItemTouchHelper()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -72,6 +76,26 @@ class MainFragment : Fragment() {
     private fun openDetailsScreen(id: String? = null) {
         val action = MainFragmentDirections.actionMainFragmentToDetailsFragment(id)
         findNavController().navigate(action)
+    }
+
+    private fun initItemTouchHelper() {
+        val swipeCallback = object : ItemSwipeCallback(requireContext()) {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                when (direction) {
+                    LEFT -> {
+                        val item = todoAdapter.getItem(viewHolder.adapterPosition)
+                        viewModel.removeItem(item.id)
+                    }
+                    RIGHT -> {
+                        val item = todoAdapter.getItem(viewHolder.adapterPosition)
+                        viewModel.changeCheckedState(item.id, true)
+                    }
+                }
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(swipeCallback)
+        itemTouchHelper.attachToRecyclerView(binding.todoList)
     }
 
     override fun onDestroyView() {

@@ -48,6 +48,10 @@ class TodoAdapter(
         }
     }
 
+    public override fun getItem(position: Int): TodoItemUiState {
+        return super.getItem(position)
+    }
+
     private companion object DiffItemCallback : ItemCallback<TodoItemUiState>() {
         override fun areItemsTheSame(oldItem: TodoItemUiState, newItem: TodoItemUiState): Boolean {
             return oldItem.id == newItem.id
@@ -89,7 +93,7 @@ class TodoItemViewHolder(private val binding: TodoItemBinding) :
                 onItemChecked(state.id, itemCheckbox.isChecked)
             }
 
-            root.setBackgroundResource(state.backgroundRes)
+            bindBackground(state.backgroundRes)
             root.setOnClickListener {
                 onItemClicked(state.id)
             }

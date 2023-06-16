@@ -194,7 +194,6 @@ class TodoItemsRepository {
         }
     }
 
-
     fun updateItem(updatedItem: TodoItem) {
         _items.update { oldItems ->
             val itemsList = oldItems.toMutableList()

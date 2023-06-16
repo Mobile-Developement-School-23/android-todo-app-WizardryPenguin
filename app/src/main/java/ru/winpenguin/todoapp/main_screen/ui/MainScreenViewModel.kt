@@ -69,6 +69,10 @@ class MainScreenViewModel(
         }
     }
 
+    fun removeItem(id: String) {
+        repository.removeItem(id)
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
 
