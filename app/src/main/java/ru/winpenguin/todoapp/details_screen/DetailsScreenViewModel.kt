@@ -50,7 +50,7 @@ class DetailsScreenViewModel(
             )
             repository.addItem(newItem)
         } else {
-            val item = repository.getById(id)
+            val item = repository.getItemById(id)
             if (item != null) {
                 repository.updateItem(
                     item.copy(
@@ -90,7 +90,7 @@ class DetailsScreenViewModel(
 
     fun updateCurrentItemId(itemId: String?) {
         this.itemId = itemId
-        val item = if (itemId == null) null else repository.getById(itemId)
+        val item = if (itemId == null) null else repository.getItemById(itemId)
         val state = mapper.map(item)
         _uiState.value = state
 

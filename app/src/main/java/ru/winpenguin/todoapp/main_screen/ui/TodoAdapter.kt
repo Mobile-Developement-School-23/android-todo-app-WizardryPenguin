@@ -10,14 +10,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.TodoItemBinding
 import ru.winpenguin.todoapp.utils.getColorFromAttr
-
-private const val ITEM_TYPE_ONLY = 1
-private const val ITEM_TYPE_FIRST = 2
-private const val ITEM_TYPE_LAST = 3
-private const val ITEM_TYPE_MIDDLE = 4
 
 class TodoAdapter(
     private val onItemChecked: (String, Boolean) -> Unit,
@@ -27,13 +21,7 @@ class TodoAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoItemViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = TodoItemBinding.inflate(layoutInflater, parent, false)
-        return when (viewType) {
-            ITEM_TYPE_ONLY -> OnlyTodoItemViewHolder(binding)
-            ITEM_TYPE_FIRST -> FirstTodoItemViewHolder(binding)
-            ITEM_TYPE_LAST -> LastTodoItemViewHolder(binding)
-            ITEM_TYPE_MIDDLE -> MiddleTodoItemViewHolder(binding)
-            else -> throw IllegalArgumentException("Unknown view type in TodoAdapter: $viewType")
-        }
+        return TodoItemViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: TodoItemViewHolder, position: Int) {
@@ -43,6 +31,21 @@ class TodoAdapter(
             onItemChecked = onItemChecked,
             onItemClicked = onItemClicked
         )
+    }
+
+    override fun onBindViewHolder(
+        holder: TodoItemViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+        } else {
+            val backgroundRes = payloads[0] as? Int
+            if (backgroundRes != null) {
+                holder.bindBackground(backgroundRes)
+            }
+        }
     }
 
     private companion object DiffItemCallback : ItemCallback<TodoItemUiState>() {
@@ -56,19 +59,18 @@ class TodoAdapter(
         ): Boolean {
             return oldItem == newItem
         }
-    }
 
-    override fun getItemViewType(position: Int): Int {
-        return when {
-            itemCount == 1 -> ITEM_TYPE_ONLY
-            position == 0 -> ITEM_TYPE_FIRST
-            position == itemCount - 1 -> ITEM_TYPE_LAST
-            else -> ITEM_TYPE_MIDDLE
+        override fun getChangePayload(oldItem: TodoItemUiState, newItem: TodoItemUiState): Any? {
+            return if (oldItem.backgroundRes != newItem.backgroundRes) {
+                newItem.backgroundRes
+            } else {
+                super.getChangePayload(oldItem, newItem)
+            }
         }
     }
 }
 
-abstract class TodoItemViewHolder(private val binding: TodoItemBinding) :
+class TodoItemViewHolder(private val binding: TodoItemBinding) :
     RecyclerView.ViewHolder(binding.root) {
 
     private val context: Context
@@ -87,7 +89,7 @@ abstract class TodoItemViewHolder(private val binding: TodoItemBinding) :
                 onItemChecked(state.id, itemCheckbox.isChecked)
             }
 
-            root.setBackgroundResource(getBackgroundRes())
+            root.setBackgroundResource(state.backgroundRes)
             root.setOnClickListener {
                 onItemClicked(state.id)
             }
@@ -112,34 +114,7 @@ abstract class TodoItemViewHolder(private val binding: TodoItemBinding) :
         }
     }
 
-    @DrawableRes
-    abstract fun getBackgroundRes(): Int
-}
-
-class OnlyTodoItemViewHolder(binding: TodoItemBinding) : TodoItemViewHolder(binding) {
-
-    override fun getBackgroundRes(): Int {
-        return R.drawable.round_corners_bg
-    }
-}
-
-class FirstTodoItemViewHolder(binding: TodoItemBinding) : TodoItemViewHolder(binding) {
-
-    override fun getBackgroundRes(): Int {
-        return R.drawable.round_top_corners_bg
-    }
-}
-
-class LastTodoItemViewHolder(binding: TodoItemBinding) : TodoItemViewHolder(binding) {
-
-    override fun getBackgroundRes(): Int {
-        return R.drawable.round_bottom_corners_bg
-    }
-}
-
-class MiddleTodoItemViewHolder(binding: TodoItemBinding) : TodoItemViewHolder(binding) {
-
-    override fun getBackgroundRes(): Int {
-        return R.drawable.rectangle_bg
+    fun bindBackground(@DrawableRes backgroundRes: Int) {
+        binding.root.setBackgroundResource(backgroundRes)
     }
 }

@@ -7,6 +7,7 @@ import ru.winpenguin.todoapp.TestLocales.RUSSIAN_LOCALE
 import ru.winpenguin.todoapp.domain.models.Deadline
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
+import ru.winpenguin.todoapp.main_screen.ui.ItemPosition.*
 import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -27,7 +28,7 @@ class TodoItemUiStateMapperTest {
             creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0)
         )
 
-        val uiState = sut.map(item)
+        val uiState = sut.map(item, MIDDLE)
 
         assertEquals(
             TodoItemUiState(
@@ -35,10 +36,11 @@ class TodoItemUiStateMapperTest {
                 isChecked = false,
                 checkBoxColorRes = R.color.checkbox_usual_colors,
                 text = "Text",
-                textColorAttr = R.color.light_label_primary,
+                textColorAttr = R.attr.labelPrimary,
                 isStrikedThrough = false,
                 priorityIconRes = R.drawable.low_priority,
-                additionalText = null
+                additionalText = null,
+                backgroundRes = R.drawable.rectangle_bg
             ),
             uiState
         )
@@ -56,7 +58,7 @@ class TodoItemUiStateMapperTest {
             deadline = Deadline.Selected(LocalDate.of(2023, Month.JUNE, 7))
         )
 
-        val uiState = sut.map(item, today)
+        val uiState = sut.map(item, LAST, today)
 
         assertEquals(
             TodoItemUiState(
@@ -64,10 +66,11 @@ class TodoItemUiStateMapperTest {
                 isChecked = true,
                 checkBoxColorRes = R.color.checkbox_usual_colors,
                 text = "Text",
-                textColorAttr = R.color.light_label_tertiary,
+                textColorAttr = R.attr.labelTertiary,
                 isStrikedThrough = true,
                 priorityIconRes = R.drawable.high_priority,
-                additionalText = "7 июня 2023"
+                additionalText = "7 июня 2023",
+                backgroundRes = R.drawable.round_bottom_corners_bg
             ),
             uiState
         )
@@ -85,7 +88,7 @@ class TodoItemUiStateMapperTest {
             deadline = Deadline.Selected(LocalDate.of(2023, Month.JUNE, 2))
         )
 
-        val uiState = sut.map(item, today)
+        val uiState = sut.map(item, FIRST, today)
 
         assertEquals(
             TodoItemUiState(
@@ -93,10 +96,42 @@ class TodoItemUiStateMapperTest {
                 isChecked = false,
                 checkBoxColorRes = R.color.checkbox_passed_deadline_colors,
                 text = "Text",
-                textColorAttr = R.color.light_label_primary,
+                textColorAttr = R.attr.labelPrimary,
                 isStrikedThrough = false,
                 priorityIconRes = null,
-                additionalText = "2 июня 2023"
+                additionalText = "2 июня 2023",
+                backgroundRes = R.drawable.round_top_corners_bg
+            ),
+            uiState
+        )
+    }
+
+    @Test
+    fun `map the only one not done item with normal importance with not passed deadline`() {
+        val today = LocalDate.of(2023, Month.JUNE, 15)
+        val item = TodoItem(
+            id = "1",
+            isDone = false,
+            text = "Text",
+            importance = Importance.NORMAL,
+            creationDate = LocalDateTime.of(2023, Month.JUNE, 10, 12, 0, 0),
+            deadline = Deadline.Selected(LocalDate.of(2023, Month.JUNE, 17)),
+            changeDate = LocalDateTime.of(2023, Month.JUNE, 12, 6, 5, 0)
+        )
+
+        val uiState = sut.map(item, ONLY, today)
+
+        assertEquals(
+            TodoItemUiState(
+                id = "1",
+                isChecked = false,
+                checkBoxColorRes = R.color.checkbox_usual_colors,
+                text = "Text",
+                textColorAttr = R.attr.labelPrimary,
+                isStrikedThrough = false,
+                priorityIconRes = null,
+                additionalText = "17 июня 2023",
+                backgroundRes = R.drawable.round_corners_bg
             ),
             uiState
         )

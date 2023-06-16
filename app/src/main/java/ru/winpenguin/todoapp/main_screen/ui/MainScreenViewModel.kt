@@ -28,15 +28,20 @@ class MainScreenViewModel(
     ) { doneItemsCount, isDoneItemsVisible, todoItems ->
         MainScreenUiState(
             doneItemsCount = doneItemsCount,
-            todoItems = if (isDoneItemsVisible) todoItems else todoItems.filterNot { it.isChecked },
+            todoItems = todoItems,
             visibilityImageRes = if (isDoneItemsVisible) R.drawable.visibility else R.drawable.visibility_off
         )
     }
 
     init {
         viewModelScope.launch {
-            repository.items
-                .map { items -> mapper.map(items) }
+            combine(
+                repository.items,
+                isDoneItemsVisible
+            ) { items, isDoneItemsVisible ->
+                val filteredItems = if (isDoneItemsVisible) items else items.filterNot { it.isDone }
+                mapper.map(filteredItems)
+            }
                 .collect { items ->
                     todoItems.value = items
                 }
@@ -52,7 +57,7 @@ class MainScreenViewModel(
     }
 
     fun changeCheckedState(id: String, isChecked: Boolean) {
-        val item = repository.getById(id)
+        val item = repository.getItemById(id)
         if (item != null) {
             repository.updateItem(item.copy(isDone = isChecked))
         }

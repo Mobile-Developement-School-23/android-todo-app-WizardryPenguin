@@ -13,4 +13,5 @@ data class TodoItemUiState(
     val isStrikedThrough: Boolean,
     @DrawableRes val priorityIconRes: Int?,
     val additionalText: String?,
+    @DrawableRes val backgroundRes: Int
 )

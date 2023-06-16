@@ -12,11 +12,24 @@ class TodoItemUiStateMapper(
 ) {
 
     fun map(items: List<TodoItem>): List<TodoItemUiState> {
-        return items.map { item -> map(item) }
+        return items.mapIndexed { index, item ->
+            val position = getItemPosition(items.size, index)
+            map(item, position)
+        }
+    }
+
+    private fun getItemPosition(itemsCount: Int, index: Int): ItemPosition {
+        return when {
+            itemsCount == 1 -> ItemPosition.ONLY
+            index == 0 -> ItemPosition.FIRST
+            index == itemsCount - 1 -> ItemPosition.LAST
+            else -> ItemPosition.MIDDLE
+        }
     }
 
     fun map(
         item: TodoItem,
+        position: ItemPosition,
         today: LocalDate = LocalDate.now(),
     ): TodoItemUiState {
         return TodoItemUiState(
@@ -44,6 +57,12 @@ class TodoItemUiStateMapper(
             additionalText = when (item.deadline) {
                 is Deadline.NotSelected -> null
                 is Deadline.Selected -> dateFormatter.formatDate(item.deadline.date)
+            },
+            backgroundRes = when (position) {
+                ItemPosition.ONLY -> R.drawable.round_corners_bg
+                ItemPosition.FIRST -> R.drawable.round_top_corners_bg
+                ItemPosition.LAST -> R.drawable.round_bottom_corners_bg
+                ItemPosition.MIDDLE -> R.drawable.rectangle_bg
             }
         )
     }

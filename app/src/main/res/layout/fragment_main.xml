@@ -44,6 +44,7 @@
         android:layout_marginTop="44dp"
         android:layout_marginEnd="8dp"
         android:clipToPadding="false"
+        android:background="@null"
         android:elevation="4dp"
         android:overScrollMode="never"
         android:paddingTop="8dp"

@@ -13,53 +13,11 @@ import java.time.Month
 
 class TodoItemsRepository {
 
-    private val _items = MutableStateFlow<List<TodoItem>>(mockedItems)
+    private val _items = MutableStateFlow<List<TodoItem>>(emptyList())
     val items: StateFlow<List<TodoItem>> = _items.asStateFlow()
 
-    private fun getItems(): List<TodoItem> {
-        return _items.value
-    }
-
-    fun addItem(item: TodoItem) {
-        _items.update {
-            _items.value + item
-        }
-    }
-
-    fun getById(id: String): TodoItem? {
-        return getItems().find { it.id == id }
-    }
-
-    fun updateItem(updatedItem: TodoItem) {
-        _items.update { oldItems ->
-            val itemsList = oldItems.toMutableList()
-            val index = itemsList.indexOfFirst { item -> item.id == updatedItem.id }
-            if (index == -1) {
-                return@update oldItems
-            }
-
-            itemsList.removeAt(index)
-            itemsList.add(index, updatedItem)
-            itemsList.toList()
-        }
-    }
-
-    fun removeItem(id: String) {
-        _items.update {
-            val currentItems = getItems().toMutableList()
-            val index = currentItems.indexOfFirst { it.id == id }
-            if (index == -1) {
-                return@update getItems()
-            }
-
-            currentItems.removeAt(index)
-            currentItems.toList()
-
-        }
-    }
-
-    private companion object {
-        val mockedItems = listOf(
+    init {
+        _items.value = listOf(
             TodoItem(
                 id = "1",
                 text = "Купить что-то",
@@ -160,6 +118,7 @@ class TodoItemsRepository {
                 importance = Importance.NORMAL,
                 isDone = false,
                 creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 10, 20, 0),
+                changeDate = LocalDateTime.of(2023, Month.JUNE, 5, 11, 18, 0),
                 deadline = Deadline.Selected(LocalDate.now().minusDays(1))
             ),
             TodoItem(
@@ -219,5 +178,48 @@ class TodoItemsRepository {
                 creationDate = LocalDateTime.of(2023, Month.JUNE, 8, 12, 0, 0),
             ),
         )
+    }
+
+    private fun getItems(): List<TodoItem> {
+        return _items.value
+    }
+
+    fun getItemById(id: String): TodoItem? {
+        return getItems().find { it.id == id }
+    }
+
+    fun addItem(item: TodoItem) {
+        _items.update {
+            _items.value + item
+        }
+    }
+
+
+    fun updateItem(updatedItem: TodoItem) {
+        _items.update { oldItems ->
+            val itemsList = oldItems.toMutableList()
+            val index = itemsList.indexOfFirst { item -> item.id == updatedItem.id }
+            if (index == -1) {
+                return@update oldItems
+            }
+
+            itemsList.removeAt(index)
+            itemsList.add(index, updatedItem)
+            itemsList.toList()
+        }
+    }
+
+    fun removeItem(id: String) {
+        _items.update {
+            val currentItems = getItems().toMutableList()
+            val index = currentItems.indexOfFirst { it.id == id }
+            if (index == -1) {
+                return@update getItems()
+            }
+
+            currentItems.removeAt(index)
+            currentItems.toList()
+
+        }
     }
 }
