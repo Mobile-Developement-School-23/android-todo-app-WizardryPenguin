@@ -38,7 +38,9 @@ class DetailsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        viewModel.updateCurrentItemId(itemId)
+        if (savedInstanceState == null) {
+            viewModel.updateCurrentItemId(itemId)
+        }
         _binding = FragmentDetailsBinding.inflate(inflater, container, false)
         return binding.root
     }
