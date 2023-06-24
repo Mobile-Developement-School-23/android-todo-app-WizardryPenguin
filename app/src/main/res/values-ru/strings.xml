@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="my_business">Мои дела</string>
+    <string name="save">Сохранить</string>
+    <string name="what_to_do">Что надо сделать…</string>
+    <string name="importance">Важность</string>
+    <string name="deadline">Сделать до</string>
+    <string name="delete">Удалить</string>
+    <string name="none">Нет</string>
+    <string name="low">Низкая</string>
+    <string name="high">Высокая</string>
+    <string name="done_count">Выполнено — %1$d</string>
+</resources>

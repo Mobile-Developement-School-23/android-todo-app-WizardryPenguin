@@ -1,16 +1,37 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
-    <style name="Theme.ToDoApp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.ToDoApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">@color/light_blue</item>
+        <item name="colorPrimaryVariant">@color/light_bg_primary</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondary">@color/light_blue</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+        <item name="android:statusBarColor">@color/light_bg_primary</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Another colors. -->
+        <item name="android:colorBackground">@color/light_bg_primary</item>
+        <item name="colorSurface">@color/light_bg_secondary</item>
+        <item name="colorOnSurface">@color/light_label_primary</item>
+        <item name="labelPrimary">@color/light_label_primary</item>
+        <item name="labelSecondary">@color/light_label_secondary</item>
+        <item name="labelTertiary">@color/light_label_tertiary</item>
+        <item name="labelDisable">@color/light_label_disable</item>
+        <item name="red">@color/light_red</item>
+        <item name="green">@color/light_green</item>
+        <item name="gray">@color/light_gray</item>
+        <item name="grayLight">@color/light_gray_light</item>
+        <item name="blue">@color/light_blue</item>
+        <item name="bgPrimary">@color/light_bg_primary</item>
+        <item name="bgSecondary">@color/light_bg_secondary</item>
+        <item name="bgElevated">@color/light_bg_elevated</item>
+        <item name="separator">@color/light_separator</item>
+        <item name="overlay">@color/light_overlay</item>
+        <!-- Text -->
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/labelPrimary</item>
     </style>
 </resources>

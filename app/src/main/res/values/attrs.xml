@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="labelPrimary" format="color" />
+    <attr name="labelSecondary" format="color" />
+    <attr name="labelTertiary" format="color" />
+    <attr name="labelDisable" format="color" />
+    <attr name="red" format="color" />
+    <attr name="green" format="color" />
+    <attr name="gray" format="color" />
+    <attr name="grayLight" format="color" />
+    <attr name="blue" format="color" />
+    <attr name="bgPrimary" format="color" />
+    <attr name="bgSecondary" format="color" />
+    <attr name="bgElevated" format="color" />
+    <attr name="separator" format="color" />
+    <!--<attr name="overlay" format="color" />-->
+</resources>

@@ -1,3 +1,19 @@
 <resources>
-    <string name="app_name">ToDoApp</string>
+    <string name="app_name" translatable="false">ToDoApp</string>
+    <string name="my_business">My business</string>
+    <string name="save">Save</string>
+    <string name="what_to_do">What to do...</string>
+    <string name="importance">Importance</string>
+    <string name="deadline">Deadline</string>
+    <string name="delete">Delete</string>
+    <string name="none">None</string>
+    <string name="low">Low</string>
+    <string name="high">High</string>
+    <string name="done_count">Done — %1$d</string>
+
+    <string-array name="importances">
+        <item>@string/none</item>
+        <item>@string/low</item>
+        <item>@string/high</item>
+    </string-array>
 </resources>
