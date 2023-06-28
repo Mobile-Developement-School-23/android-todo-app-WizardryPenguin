@@ -10,6 +10,7 @@
     <string name="low">Low</string>
     <string name="high">High</string>
     <string name="done_count">Done — %1$d</string>
+    <string name="preference_file_key" translatable="false">ru.winpeguin.todoapp.PREFERENCE_FILE_KEY</string>
 
     <string-array name="importances">
         <item>@string/none</item>

@@ -23,7 +23,7 @@ data class TodoItem(
     val creationDate: Instant,
 
     @ColumnInfo(name = "change_date")
-    val changeDate: Instant? = null,
+    val changeDate: Instant,
 
     @ColumnInfo(name = "deadline")
     val deadline: Instant? = null,

@@ -5,13 +5,13 @@ import java.time.Instant
 
 class Converters {
     @TypeConverter
-    fun epochMillisToInstant(epochMillis: Long?): Instant? {
-        epochMillis ?: return null
-        return Instant.ofEpochMilli(epochMillis)
+    fun epochMillisToInstant(epochSeconds: Long?): Instant? {
+        epochSeconds ?: return null
+        return Instant.ofEpochSecond(epochSeconds)
     }
 
     @TypeConverter
-    fun instantToEpochMillis(instant: Instant?): Long? {
-        return instant?.toEpochMilli()
+    fun instantToEpochSeconds(instant: Instant?): Long? {
+        return instant?.epochSecond
     }
 }

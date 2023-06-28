@@ -17,9 +17,15 @@ interface TodoDao {
     @Insert
     suspend fun insertItem(item: TodoItem)
 
+    @Insert
+    suspend fun insertItems(items: List<TodoItem>)
+
     @Update
     suspend fun updateItem(item: TodoItem)
 
     @Query("DELETE FROM todo_items WHERE id LIKE :id")
     suspend fun deleteItem(id: String)
+
+    @Query("DELETE FROM todo_items WHERE id IN (:ids)")
+    suspend fun deleteItems(ids: Set<String>)
 }

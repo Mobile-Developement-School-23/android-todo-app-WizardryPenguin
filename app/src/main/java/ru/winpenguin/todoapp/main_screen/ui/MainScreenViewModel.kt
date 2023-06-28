@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.TodoApp
-import ru.winpenguin.todoapp.data.db.TodoItemsRepository
+import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.utils.DateFormatter
 
 class MainScreenViewModel(

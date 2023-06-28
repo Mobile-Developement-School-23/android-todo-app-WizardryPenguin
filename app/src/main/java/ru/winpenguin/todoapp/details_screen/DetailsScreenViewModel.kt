@@ -10,7 +10,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.*
-import ru.winpenguin.todoapp.data.db.TodoItemsRepository
+import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import ru.winpenguin.todoapp.utils.DateFormatter
@@ -48,13 +48,15 @@ class DetailsScreenViewModel(
     fun saveTodoItem(text: String) {
         viewModelScope.launch(defaultDispatcher) {
             val id = itemId
+            val creationDate = Instant.now()
             if (id == null) {
                 val newItem = TodoItem(
                     id = UUID.randomUUID().toString(),
                     text = text,
                     importance = _uiState.value.importance,
                     isDone = false,
-                    creationDate = Instant.now(),
+                    creationDate = creationDate,
+                    changeDate = creationDate,
                     deadline = deadline
                 )
                 repository.addItem(newItem)
@@ -65,7 +67,7 @@ class DetailsScreenViewModel(
                         item.copy(
                             text = uiState.value.text,
                             importance = uiState.value.importance,
-                            changeDate = Instant.now(),
+                            changeDate = creationDate,
                             deadline = deadline
                         )
                     )
