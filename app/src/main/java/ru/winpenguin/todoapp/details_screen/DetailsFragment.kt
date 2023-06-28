@@ -16,7 +16,6 @@ import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentDetailsBinding
-import ru.winpenguin.todoapp.domain.models.Deadline
 import ru.winpenguin.todoapp.domain.models.Importance
 
 class DetailsFragment : Fragment() {
@@ -68,9 +67,9 @@ class DetailsFragment : Fragment() {
 
         binding.deadlineSwitch.setOnClickListener {
             when (viewModel.deadline) {
-                is Deadline.NotSelected -> findNavController()
+                null -> findNavController()
                     .navigate(DetailsFragmentDirections.actionDetailsFragmentToDatePickerFragment())
-                is Deadline.Selected -> viewModel.clearDeadline()
+                else -> viewModel.clearDeadline()
             }
         }
 

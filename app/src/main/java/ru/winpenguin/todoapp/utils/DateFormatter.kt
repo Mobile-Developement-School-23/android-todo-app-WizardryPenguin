@@ -1,18 +1,21 @@
 package ru.winpenguin.todoapp.utils
 
-import java.time.LocalDate
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 class DateFormatter(
-    locale: Locale = Locale.getDefault(),
+    localeProvider: () -> Locale = { Locale.getDefault() },
     private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(
         "d MMMM yyyy",
-        locale
+        localeProvider()
     ),
+    private val zoneIdProvider: () -> ZoneId = { ZoneId.systemDefault() }
 ) {
 
-    fun formatDate(date: LocalDate): String {
-        return date.format(dateFormatter)
+    fun formatDate(instant: Instant): String {
+        val localDate = instant.atZone(zoneIdProvider()).toLocalDate()
+        return localDate.format(dateFormatter)
     }
 }

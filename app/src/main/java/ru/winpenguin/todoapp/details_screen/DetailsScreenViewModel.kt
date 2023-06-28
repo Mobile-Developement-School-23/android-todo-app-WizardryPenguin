@@ -2,64 +2,74 @@ package ru.winpenguin.todoapp.details_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.*
 import ru.winpenguin.todoapp.data.TodoItemsRepository
-import ru.winpenguin.todoapp.domain.models.Deadline
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import ru.winpenguin.todoapp.utils.DateFormatter
-import java.time.LocalDateTime
+import java.time.Instant
 import java.util.*
 
 class DetailsScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: DetailsScreenUiStateMapper,
-    private val dateFormatter: DateFormatter
+    private val dateFormatter: DateFormatter,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
+    @Volatile
     private var itemId: String? = null
 
     private val _uiState = MutableStateFlow(DetailsScreenUiState())
     val uiState: StateFlow<DetailsScreenUiState>
         get() = _uiState.asStateFlow()
 
-    private val _deadlineFlow = MutableStateFlow<Deadline>(Deadline.NotSelected())
-    val deadlineFlow = _deadlineFlow
-        .asStateFlow()
-        .map { deadline ->
-            when (deadline) {
-                is Deadline.NotSelected -> null
-                is Deadline.Selected -> dateFormatter.formatDate(deadline.date)
-            }
+    var deadline: Instant? = null
+        private set
+    private val deadlineTrigger = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val deadlineFlow = deadlineTrigger
+        .map {
+            val deadline = deadline
+            deadline?.let { dateFormatter.formatDate(deadline) }
         }
-    val deadline: Deadline
-        get() = _deadlineFlow.value
+        .flowOn(defaultDispatcher)
+
 
     fun saveTodoItem(text: String) {
-        val id = itemId
-        if (id == null) {
-            val newItem = TodoItem(
-                id = UUID.randomUUID().toString(),
-                text = text,
-                importance = _uiState.value.importance,
-                isDone = false,
-                creationDate = LocalDateTime.now(),
-                deadline = deadline
-            )
-            repository.addItem(newItem)
-        } else {
-            val item = repository.getItemById(id)
-            if (item != null) {
-                repository.updateItem(
-                    item.copy(
-                        text = uiState.value.text,
-                        importance = uiState.value.importance,
-                        changeDate = LocalDateTime.now(),
-                        deadline = deadline
-                    )
+        viewModelScope.launch(defaultDispatcher) {
+            val id = itemId
+            if (id == null) {
+                val newItem = TodoItem(
+                    id = UUID.randomUUID().toString(),
+                    text = text,
+                    importance = _uiState.value.importance,
+                    isDone = false,
+                    creationDate = Instant.now(),
+                    deadline = deadline
                 )
+                repository.addItem(newItem)
+            } else {
+                val item = repository.getItemById(id)
+                if (item != null) {
+                    repository.updateItem(
+                        item.copy(
+                            text = uiState.value.text,
+                            importance = uiState.value.importance,
+                            changeDate = Instant.now(),
+                            deadline = deadline
+                        )
+                    )
+                }
             }
         }
     }
@@ -76,25 +86,31 @@ class DetailsScreenViewModel(
         }
     }
 
-    fun selectDeadline(deadline: Deadline.Selected) {
-        _deadlineFlow.value = deadline
+    fun selectDeadline(deadline: Instant) {
+        this.deadline = deadline
+        deadlineTrigger.tryEmit(Unit)
     }
 
     fun cancelDeadlineSelection() {
-        _deadlineFlow.value = Deadline.NotSelected()
+        deadline = null
+        deadlineTrigger.tryEmit(Unit)
     }
 
     fun clearDeadline() {
-        _deadlineFlow.value = Deadline.NotSelected()
+        deadline = null
+        deadlineTrigger.tryEmit(Unit)
     }
 
     fun updateCurrentItemId(itemId: String?) {
-        this.itemId = itemId
-        val item = if (itemId == null) null else repository.getItemById(itemId)
-        val state = mapper.map(item)
-        _uiState.value = state
+        viewModelScope.launch(defaultDispatcher) {
+            this@DetailsScreenViewModel.itemId = itemId
+            val item = if (itemId == null) null else repository.getItemById(itemId)
+            val state = mapper.map(item)
+            _uiState.value = state
 
-        _deadlineFlow.value = item?.deadline ?: Deadline.NotSelected()
+            deadline = item?.deadline
+            deadlineTrigger.tryEmit(Unit)
+        }
     }
 
     fun textChanged(text: CharSequence?) {
@@ -104,9 +120,8 @@ class DetailsScreenViewModel(
     }
 
     fun removeTodoItem() {
-        val id = itemId
-        if (id != null) {
-            repository.removeItem(id)
+        viewModelScope.launch {
+            itemId?.let { id -> repository.removeItem(id) }
         }
     }
 

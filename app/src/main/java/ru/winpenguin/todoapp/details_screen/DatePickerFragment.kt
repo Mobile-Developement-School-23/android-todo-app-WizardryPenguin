@@ -7,8 +7,7 @@ import android.os.Bundle
 import android.widget.DatePicker
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import ru.winpenguin.todoapp.domain.models.Deadline
-import java.time.LocalDate
+import java.time.*
 
 class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
 
@@ -17,17 +16,17 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val date = when (val deadline = detailsViewModel.deadline) {
-            is Deadline.NotSelected -> LocalDate.now()
-            is Deadline.Selected -> deadline.date
+        val localDate = when (val deadline = detailsViewModel.deadline) {
+            null -> LocalDate.now()
+            else -> deadline.atZone(ZoneId.systemDefault()).toLocalDate()
         }
 
         val dialog = DatePickerDialog(
             requireContext(),
             this,
-            date.year,
-            date.monthValue - 1,
-            date.dayOfMonth
+            localDate.year,
+            localDate.monthValue - 1,
+            localDate.dayOfMonth
         )
         dialog.datePicker.minDate = System.currentTimeMillis()
         return dialog
@@ -35,11 +34,23 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
 
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
-        val deadline = LocalDate.of(year, month + 1, dayOfMonth)
-        detailsViewModel.selectDeadline(Deadline.Selected(deadline))
+        val deadline = createInstant(year, month, dayOfMonth)
+        detailsViewModel.selectDeadline(deadline)
+    }
+
+    private fun createInstant(
+        year: Int,
+        month: Int,
+        dayOfMonth: Int
+    ): Instant {
+        val localDate = LocalDate.of(year, month + 1, dayOfMonth)
+        val localTime = LocalTime.of(0, 0, 0)
+        val zonedDateTime = ZonedDateTime.of(localDate, localTime, ZoneId.systemDefault())
+        return Instant.from(zonedDateTime)
     }
 
     override fun onCancel(dialog: DialogInterface) {
         detailsViewModel.cancelDeadlineSelection()
     }
 }
+
