@@ -1,4 +1,4 @@
-package ru.winpenguin.todoapp.data
+package ru.winpenguin.todoapp.data.db
 
 import androidx.room.TypeConverter
 import java.time.Instant

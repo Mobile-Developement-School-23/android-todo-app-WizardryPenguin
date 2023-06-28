@@ -10,7 +10,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.*
-import ru.winpenguin.todoapp.data.TodoItemsRepository
+import ru.winpenguin.todoapp.data.db.TodoItemsRepository
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import ru.winpenguin.todoapp.utils.DateFormatter
