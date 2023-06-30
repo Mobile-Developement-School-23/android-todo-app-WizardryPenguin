@@ -2,9 +2,6 @@ package ru.winpenguin.todoapp.main_screen.ui
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.graphics.drawable.ColorDrawable
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -27,9 +24,6 @@ abstract class ItemSwipeCallback(
     private val greenColor = context.getColorFromAttr(R.attr.green)
 
     private val background = ColorDrawable()
-    private val clearPaint = Paint().apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-    }
 
     override fun onMove(
         recyclerView: RecyclerView,
@@ -54,13 +48,6 @@ abstract class ItemSwipeCallback(
 
         if (dX < 0) {
             if (isCanceled) {
-                clearCanvas(
-                    c,
-                    view.right + dX,
-                    view.top.toFloat(),
-                    view.right.toFloat(),
-                    view.bottom.toFloat()
-                )
                 return super.onChildDraw(
                     c,
                     recyclerView,
@@ -89,13 +76,6 @@ abstract class ItemSwipeCallback(
             deleteIcon.draw(c)
         } else {
             if (isCanceled) {
-                clearCanvas(
-                    c,
-                    view.left.toFloat(),
-                    view.top.toFloat(),
-                    view.right + dX,
-                    view.bottom.toFloat()
-                )
                 return super.onChildDraw(
                     c,
                     recyclerView,
@@ -125,9 +105,5 @@ abstract class ItemSwipeCallback(
         }
 
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-    }
-
-    private fun clearCanvas(c: Canvas?, left: Float, top: Float, right: Float, bottom: Float) {
-        c?.drawRect(left, top, right, bottom, clearPaint)
     }
 }
