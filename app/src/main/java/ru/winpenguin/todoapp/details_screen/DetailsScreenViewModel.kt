@@ -44,7 +44,6 @@ class DetailsScreenViewModel(
         }
         .flowOn(defaultDispatcher)
 
-
     fun saveTodoItem(text: String) {
         viewModelScope.launch(defaultDispatcher) {
             val id = itemId

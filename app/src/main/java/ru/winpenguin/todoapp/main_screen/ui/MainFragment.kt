@@ -14,9 +14,11 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ItemTouchHelper.LEFT
 import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentMainBinding
+import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 
 class MainFragment : Fragment() {
 
@@ -65,6 +67,17 @@ class MainFragment : Fragment() {
             }
         }
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events
+                    .collect { event ->
+                        when (event) {
+                            is ShowMessage -> showSnackbar(getString(event.message))
+                        }
+                    }
+            }
+        }
+
         binding.ivVisibility.setOnClickListener {
             viewModel.changeItemsVisibility()
         }
@@ -88,7 +101,7 @@ class MainFragment : Fragment() {
                     }
                     RIGHT -> {
                         val item = todoAdapter.getItem(viewHolder.adapterPosition)
-                        viewModel.changeCheckedState(item.id, true)
+                        viewModel.invertCheckedState(item.id)
                     }
                 }
             }
@@ -101,5 +114,12 @@ class MainFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun showSnackbar(message: String) {
+        val snackbar = Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+        snackbar.anchorView = binding.addTodoButton
+        snackbar.show()
+        viewModel.onMessageShown()
     }
 }

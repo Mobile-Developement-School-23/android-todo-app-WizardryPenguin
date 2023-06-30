@@ -14,13 +14,13 @@ interface TodoDao {
     @Query("SELECT * FROM todo_items WHERE id LIKE :id")
     suspend fun getItemById(id: String): TodoItem?
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItem(item: TodoItem)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItems(items: List<TodoItem>)
 
-    @Update
+    @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateItem(item: TodoItem)
 
     @Query("DELETE FROM todo_items WHERE id LIKE :id")

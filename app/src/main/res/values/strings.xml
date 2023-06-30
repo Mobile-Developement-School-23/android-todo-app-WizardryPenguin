@@ -10,6 +10,12 @@
     <string name="low">Low</string>
     <string name="high">High</string>
     <string name="done_count">Done — %1$d</string>
+    <string name="no_network">Synchronization failed. Check your network connection.</string>
+    <string name="authorization_error">Authorization error. Please contact our support.</string>
+    <string name="other_error">Today is not your lucky day, something bad happened…</string>
+    <string name="add_item_error">Error happened on item addition</string>
+    <string name="update_item_error">Error happened on item update</string>
+    <string name="remove_item_error">Error happened on item remove</string>
     <string name="preference_file_key" translatable="false">ru.winpeguin.todoapp.PREFERENCE_FILE_KEY</string>
 
     <string-array name="importances">

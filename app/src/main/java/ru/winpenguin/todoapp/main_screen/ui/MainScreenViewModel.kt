@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.TodoApp
 import ru.winpenguin.todoapp.data.TodoItemsRepository
+import ru.winpenguin.todoapp.data.network.NetworkError.*
+import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 import ru.winpenguin.todoapp.utils.DateFormatter
 
 class MainScreenViewModel(
@@ -34,6 +36,18 @@ class MainScreenViewModel(
             todoItems = todoItems,
             visibilityImageRes = if (isDoneItemsVisible) R.drawable.visibility else R.drawable.visibility_off
         )
+    }
+        .flowOn(defaultDispatcher)
+
+    val events: Flow<MainScreenEvent> = repository.errorFlow.map { error ->
+        when (error) {
+            is ConnectionError -> ShowMessage(R.string.no_network)
+            is AuthorizationError -> ShowMessage(R.string.authorization_error)
+            OtherError -> ShowMessage(R.string.other_error)
+            AddItemError -> ShowMessage(R.string.add_item_error)
+            UpdateItemError -> ShowMessage(R.string.update_item_error)
+            RemoveItemError -> ShowMessage(R.string.remove_item_error)
+        }
     }
         .flowOn(defaultDispatcher)
 
@@ -71,6 +85,15 @@ class MainScreenViewModel(
         }
     }
 
+    fun invertCheckedState(id: String) {
+        viewModelScope.launch {
+            val item = repository.getItemById(id)
+            if (item != null) {
+                repository.updateItem(item.copy(isDone = !item.isDone))
+            }
+        }
+    }
+
     fun changeItemsVisibility() {
         isDoneItemsVisible.update { isVisible ->
             !isVisible
@@ -81,6 +104,10 @@ class MainScreenViewModel(
         viewModelScope.launch {
             repository.removeItem(id)
         }
+    }
+
+    fun onMessageShown() {
+        repository.clearError()
     }
 
     companion object {
