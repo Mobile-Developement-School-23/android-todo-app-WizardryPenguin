@@ -47,8 +47,8 @@ class DetailsScreenViewModel(
     fun saveTodoItem(text: String) {
         viewModelScope.launch(defaultDispatcher) {
             val id = itemId
-            val creationDate = Instant.now()
             if (id == null) {
+                val creationDate = Instant.now()
                 val newItem = TodoItem(
                     id = UUID.randomUUID().toString(),
                     text = text,
@@ -66,7 +66,7 @@ class DetailsScreenViewModel(
                         item.copy(
                             text = uiState.value.text,
                             importance = uiState.value.importance,
-                            changeDate = creationDate,
+                            changeDate = Instant.now(),
                             deadline = deadline
                         )
                     )

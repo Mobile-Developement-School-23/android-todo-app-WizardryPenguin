@@ -15,6 +15,7 @@ import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.data.network.NetworkError.*
 import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 import ru.winpenguin.todoapp.utils.DateFormatter
+import java.time.Instant
 
 class MainScreenViewModel(
     private val repository: TodoItemsRepository,
@@ -80,7 +81,9 @@ class MainScreenViewModel(
         viewModelScope.launch {
             val item = repository.getItemById(id)
             if (item != null) {
-                repository.updateItem(item.copy(isDone = isChecked))
+                repository.updateItem(
+                    item.copy(isDone = isChecked, changeDate = Instant.now())
+                )
             }
         }
     }
@@ -89,7 +92,9 @@ class MainScreenViewModel(
         viewModelScope.launch {
             val item = repository.getItemById(id)
             if (item != null) {
-                repository.updateItem(item.copy(isDone = !item.isDone))
+                repository.updateItem(
+                    item.copy(isDone = !item.isDone, changeDate = Instant.now())
+                )
             }
         }
     }

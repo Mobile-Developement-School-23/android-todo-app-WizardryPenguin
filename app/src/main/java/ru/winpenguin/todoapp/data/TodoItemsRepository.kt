@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import retrofit2.Response
 import ru.winpenguin.todoapp.data.RequestType.*
+import ru.winpenguin.todoapp.data.db.ChangeType.*
+import ru.winpenguin.todoapp.data.db.ChangedItemEntity
+import ru.winpenguin.todoapp.data.db.ItemChangeDao
 import ru.winpenguin.todoapp.data.db.TodoDao
 import ru.winpenguin.todoapp.data.network.*
 import ru.winpenguin.todoapp.data.network.NetworkError.*
@@ -15,6 +18,7 @@ import ru.winpenguin.todoapp.domain.models.TodoItem
 
 class TodoItemsRepository(
     private val todoDao: TodoDao,
+    private val itemChangeDao: ItemChangeDao,
     private val todoApi: TodoApi,
     private val deviceIdRepository: DeviceIdRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -33,33 +37,90 @@ class TodoItemsRepository(
 
     init {
         scope.launch {
-            updateItemsFromNetwork()
+            updateItems()
         }
     }
 
-    private suspend fun updateItemsFromNetwork() {
-        try {
+    suspend fun updateItems(): Boolean {
+        return try {
             val response = todoApi.getAllItems()
             if (response.isSuccessful && response.body() != null) {
-                response.body()?.let { dto ->
-                    revisionFlow.emit(dto.revision)
-                    val todoItems = dto.list.toDomainModels()
+                val dto = response.body()!!
+                revisionFlow.emit(dto.revision)
+                val remoteTodoItems = dto.list.toDomainModels()
 
-                    val serverIds = todoItems.map { item -> item.id }.toSet()
+                updateRemoteItemsWithLocalChanges(remoteTodoItems)
+
+                val newResponse = todoApi.getAllItems()
+                if (newResponse.isSuccessful && newResponse.body() != null) {
+                    val newDto = newResponse.body()!!
+                    revisionFlow.emit(newDto.revision)
+                    val newRemoteTodoItems = newDto.list.toDomainModels()
+
+                    val serverIds = newRemoteTodoItems.map { item -> item.id }.toSet()
                     val dbIds = items.first().map { item -> item.id }.toSet()
                     val idsToRemove = dbIds.subtract(serverIds)
                     todoDao.deleteItems(idsToRemove)
 
-                    todoDao.insertItems(todoItems)
+                    todoDao.insertItems(newRemoteTodoItems)
+                    true
+                } else {
+                    when (response.code()) {
+                        SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
+                        else -> _errorFlow.emit(OtherError)
+                    }
+                    false
                 }
             } else {
                 when (response.code()) {
                     SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
                     else -> _errorFlow.emit(OtherError)
                 }
+                false
             }
         } catch (e: Exception) {
             _errorFlow.emit(ConnectionError)
+            false
+        }
+    }
+
+    private suspend fun updateRemoteItemsWithLocalChanges(
+        remoteTodoItems: List<TodoItem>
+    ) {
+        val localChangedItems = itemChangeDao.getAllItems().sorted()
+        localChangedItems.forEach { item ->
+            when (item.changeType) {
+                ADD -> {
+                    val localItem = todoDao.getItemById(item.itemId)
+                    if (localItem != null) {
+                        addNetworkItem(localItem)
+                    } else {
+                        itemChangeDao.deleteItem(item.itemId)
+                    }
+                }
+                UPDATE -> {
+                    val remoteItem = remoteTodoItems.firstOrNull { it.id == item.itemId }
+                    if (remoteItem != null) {
+                        val localItem = todoDao.getItemById(item.itemId)
+                        if (localItem != null && localItem.changeDate.isAfter(remoteItem.changeDate)) {
+                            updateNetworkItem(localItem)
+                        } else {
+                            itemChangeDao.deleteItem(item.itemId)
+                        }
+                    } else {
+                        itemChangeDao.deleteItem(item.itemId)
+                    }
+                }
+                REMOVE -> {
+                    val localItem = todoDao.getItemById(item.itemId)
+                    if (localItem != null) {
+                        removeNetworkItem(item.itemId)
+                    } else {
+                        itemChangeDao.deleteItem(item.itemId)
+                    }
+                }
+
+            }
         }
     }
 
@@ -72,67 +133,91 @@ class TodoItemsRepository(
     suspend fun addItem(item: TodoItem) {
         scope.launch {
             todoDao.insertItem(item)
+            itemChangeDao.insertItem(
+                ChangedItemEntity(
+                    itemId = item.id,
+                    changeType = ADD
+                )
+            )
+            addNetworkItem(item)
         }
-        scope.launch {
-            try {
-                val response = todoApi.addNewItem(
-                    revision = getRevision(),
-                    item = SingleTodoItemDto(
-                        element = item.toDto(deviceIdRepository.getDeviceId()),
-                        revision = getRevision()
-                    )
+    }
+
+    private suspend fun addNetworkItem(item: TodoItem) {
+        try {
+            val response = todoApi.addNewItem(
+                revision = getRevision(),
+                item = SingleTodoItemDto(
+                    element = item.toDto(deviceIdRepository.getDeviceId()),
+                    revision = getRevision()
                 )
-                handleResponse(
-                    response = response,
-                    requestType = AddItem(item)
-                )
-            } catch (e: Exception) {
-                _errorFlow.emit(ConnectionError)
-            }
+            )
+            handleResponse(
+                response = response,
+                requestType = AddItem(item)
+            )
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
         }
     }
 
     suspend fun updateItem(updatedItem: TodoItem) {
         scope.launch {
             todoDao.updateItem(updatedItem)
+            itemChangeDao.insertItem(
+                ChangedItemEntity(
+                    itemId = updatedItem.id,
+                    changeType = UPDATE
+                )
+            )
+            updateNetworkItem(updatedItem)
         }
-        scope.launch {
-            try {
-                val response = todoApi.changeItem(
-                    revision = getRevision(),
-                    id = updatedItem.id,
-                    item = SingleTodoItemDto(
-                        element = updatedItem.toDto(deviceIdRepository.getDeviceId()),
-                        revision = getRevision()
-                    )
+    }
+
+    private suspend fun updateNetworkItem(updatedItem: TodoItem) {
+        try {
+            val response = todoApi.changeItem(
+                revision = getRevision(),
+                id = updatedItem.id,
+                item = SingleTodoItemDto(
+                    element = updatedItem.toDto(deviceIdRepository.getDeviceId()),
+                    revision = getRevision()
                 )
-                handleResponse(
-                    response = response,
-                    requestType = UpdateItem(updatedItem)
-                )
-            } catch (e: Exception) {
-                _errorFlow.emit(ConnectionError)
-            }
+            )
+            handleResponse(
+                response = response,
+                requestType = UpdateItem(updatedItem)
+            )
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
         }
     }
 
     suspend fun removeItem(id: String) {
         scope.launch {
             todoDao.deleteItem(id)
+            itemChangeDao.insertItem(
+                ChangedItemEntity(
+                    itemId = id,
+                    changeType = REMOVE
+                )
+            )
+            removeNetworkItem(id)
         }
-        scope.launch {
-            try {
-                val response = todoApi.deleteItem(
-                    revision = getRevision(),
-                    id = id
-                )
-                handleResponse(
-                    response = response,
-                    requestType = RemoveItem(id)
-                )
-            } catch (e: Exception) {
-                _errorFlow.emit(ConnectionError)
-            }
+    }
+
+    private suspend fun removeNetworkItem(id: String) {
+        try {
+            val response = todoApi.deleteItem(
+                revision = getRevision(),
+                id = id
+            )
+            handleResponse(
+                response = response,
+                requestType = RemoveItem(id)
+            )
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
         }
     }
 
@@ -141,12 +226,13 @@ class TodoItemsRepository(
         requestType: RequestType
     ) {
         if (response.isSuccessful && response.body() != null) {
+            itemChangeDao.deleteItem(response.body()!!.element.id)
             revisionFlow.emit(response.body()?.revision)
         } else {
             when (response.code()) {
                 SC_INCORRECT_REQUEST,
                 SC_ITEM_NOT_FOUND -> {
-                    updateItemsFromNetwork()
+                    updateItems()
                     val newResponse = when (requestType) {
                         is AddItem -> todoApi.addNewItem(
                             revision = getRevision(),
@@ -177,6 +263,7 @@ class TodoItemsRepository(
                             is RemoveItem -> _errorFlow.emit(RemoveItemError)
                         }
                     }
+                    itemChangeDao.deleteItem(response.body()!!.element.id)
                 }
                 SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
                 else -> _errorFlow.emit(OtherError)

@@ -8,6 +8,7 @@ import java.time.Instant
 @Entity(tableName = "todo_items")
 data class TodoItem(
     @PrimaryKey
+    @ColumnInfo(name = "id")
     val id: String,
 
     @ColumnInfo(name = "text")
