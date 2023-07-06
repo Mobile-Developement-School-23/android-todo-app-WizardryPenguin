@@ -1,27 +1,29 @@
 package ru.winpenguin.todoapp.details_screen
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.winpenguin.todoapp.*
 import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 class DetailsScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: DetailsScreenUiStateMapper,
     private val dateFormatter: DateFormatter,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     @Volatile
@@ -123,24 +125,6 @@ class DetailsScreenViewModel(
     fun removeTodoItem() {
         viewModelScope.launch {
             itemId?.let { id -> repository.removeItem(id) }
-        }
-    }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val application =
-                    checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-                val repository = (application as TodoApp).todoItemsRepository
-
-                return DetailsScreenViewModel(
-                    repository,
-                    DetailsScreenUiStateMapper(),
-                    DateFormatter()
-                ) as T
-            }
         }
     }
 }

@@ -2,17 +2,29 @@ package ru.winpenguin.todoapp.details_screen
 
 import android.app.DatePickerDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.DatePicker
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
-import java.time.*
+import androidx.lifecycle.ViewModelProvider
+import ru.winpenguin.todoapp.MainActivity
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
 
-    private val detailsViewModel by activityViewModels<DetailsScreenViewModel> {
-        DetailsScreenViewModel.Factory
+    private lateinit var detailsViewModel: DetailsScreenViewModel
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val viewModelFactory =
+            (requireActivity() as MainActivity).activityComponent.viewModelFactory
+        detailsViewModel =
+            ViewModelProvider(this, viewModelFactory)[DetailsScreenViewModel::class.java]
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -31,7 +43,6 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
         dialog.datePicker.minDate = System.currentTimeMillis()
         return dialog
     }
-
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
         val deadline = createInstant(year, month, dayOfMonth)

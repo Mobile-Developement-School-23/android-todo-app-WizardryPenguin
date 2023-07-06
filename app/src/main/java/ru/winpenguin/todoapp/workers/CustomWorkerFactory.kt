@@ -1,12 +1,15 @@
-package ru.winpenguin.todoapp
+package ru.winpenguin.todoapp.workers
 
 import android.content.Context
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
 import ru.winpenguin.todoapp.data.TodoItemsRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MyWorkerFactory(
+@Singleton
+class CustomWorkerFactory @Inject constructor(
     private val todoItemsRepository: TodoItemsRepository
 ) : WorkerFactory() {
 

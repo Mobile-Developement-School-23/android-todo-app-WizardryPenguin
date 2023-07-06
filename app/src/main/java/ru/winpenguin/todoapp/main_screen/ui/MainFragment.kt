@@ -1,12 +1,13 @@
 package ru.winpenguin.todoapp.main_screen.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -16,20 +17,26 @@ import androidx.recyclerview.widget.ItemTouchHelper.RIGHT
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import ru.winpenguin.todoapp.MainActivity
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentMainBinding
 import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 
 class MainFragment : Fragment() {
 
-    private val viewModel by viewModels<MainScreenViewModel> {
-        MainScreenViewModel.Factory
-    }
+    private lateinit var viewModel: MainScreenViewModel
 
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var todoAdapter: TodoAdapter
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val viewModelFactory =
+            (requireActivity() as MainActivity).activityComponent.viewModelFactory
+        viewModel = ViewModelProvider(this, viewModelFactory)[MainScreenViewModel::class.java]
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,7 +63,7 @@ class MainFragment : Fragment() {
         initItemTouchHelper()
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState
                     .collect { screenState ->
                         todoAdapter.submitList(screenState.todoItems)
@@ -68,7 +75,7 @@ class MainFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.events
                     .collect { event ->
                         when (event) {
@@ -99,6 +106,7 @@ class MainFragment : Fragment() {
                         val item = todoAdapter.getItem(viewHolder.adapterPosition)
                         viewModel.removeItem(item.id)
                     }
+
                     RIGHT -> {
                         val item = todoAdapter.getItem(viewHolder.adapterPosition)
                         viewModel.invertCheckedState(item.id)
@@ -106,7 +114,6 @@ class MainFragment : Fragment() {
                 }
             }
         }
-
         val itemTouchHelper = ItemTouchHelper(swipeCallback)
         itemTouchHelper.attachToRecyclerView(binding.todoList)
     }

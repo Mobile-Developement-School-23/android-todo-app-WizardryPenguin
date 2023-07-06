@@ -3,13 +3,15 @@ package ru.winpenguin.todoapp.data
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
+import ru.winpenguin.todoapp.di.IoDispatcher
+import java.util.UUID
+import javax.inject.Inject
 
-class DeviceIdRepository(
+class DeviceIdRepository @Inject constructor(
     private val sharedPreferences: SharedPreferences,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    @IoDispatcher
+    private val ioDispatcher: CoroutineDispatcher
 ) {
 
     suspend fun getDeviceId(): String {

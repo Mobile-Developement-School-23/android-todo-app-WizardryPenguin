@@ -10,8 +10,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.data.db.ItemChangeDao
+import javax.inject.Inject
 
-class NetworkSyncListener(
+class NetworkSyncListener @Inject constructor(
     private val connectivityManager: ConnectivityManager,
     private val todoItemsRepository: TodoItemsRepository,
     private val itemChangeDao: ItemChangeDao

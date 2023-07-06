@@ -4,8 +4,9 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import ru.winpenguin.todoapp.BuildConfig
 import java.io.IOException
+import javax.inject.Inject
 
-class AuthInterceptor : Interceptor {
+class AuthInterceptor @Inject constructor() : Interceptor {
 
     private val token = BuildConfig.apiToken
 
