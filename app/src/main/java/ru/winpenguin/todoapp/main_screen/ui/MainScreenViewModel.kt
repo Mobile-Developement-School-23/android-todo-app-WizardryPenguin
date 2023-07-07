@@ -5,16 +5,22 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.TodoApp
 import ru.winpenguin.todoapp.data.TodoItemsRepository
+import ru.winpenguin.todoapp.data.network.NetworkError.*
+import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 import ru.winpenguin.todoapp.utils.DateFormatter
+import java.time.Instant
 
 class MainScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: TodoItemUiStateMapper,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
     private val doneItemsCount = MutableStateFlow(0)
@@ -32,6 +38,19 @@ class MainScreenViewModel(
             visibilityImageRes = if (isDoneItemsVisible) R.drawable.visibility else R.drawable.visibility_off
         )
     }
+        .flowOn(defaultDispatcher)
+
+    val events: Flow<MainScreenEvent> = repository.errorFlow.map { error ->
+        when (error) {
+            is ConnectionError -> ShowMessage(R.string.no_network)
+            is AuthorizationError -> ShowMessage(R.string.authorization_error)
+            OtherError -> ShowMessage(R.string.other_error)
+            AddItemError -> ShowMessage(R.string.add_item_error)
+            UpdateItemError -> ShowMessage(R.string.update_item_error)
+            RemoveItemError -> ShowMessage(R.string.remove_item_error)
+        }
+    }
+        .flowOn(defaultDispatcher)
 
     init {
         viewModelScope.launch {
@@ -42,6 +61,7 @@ class MainScreenViewModel(
                 val filteredItems = if (isDoneItemsVisible) items else items.filterNot { it.isDone }
                 mapper.map(filteredItems)
             }
+                .flowOn(defaultDispatcher)
                 .collect { items ->
                     todoItems.value = items
                 }
@@ -50,6 +70,7 @@ class MainScreenViewModel(
         viewModelScope.launch {
             repository.items
                 .map { items -> items.count { it.isDone } }
+                .flowOn(defaultDispatcher)
                 .collect { doneItems ->
                     doneItemsCount.value = doneItems
                 }
@@ -57,9 +78,24 @@ class MainScreenViewModel(
     }
 
     fun changeCheckedState(id: String, isChecked: Boolean) {
-        val item = repository.getItemById(id)
-        if (item != null) {
-            repository.updateItem(item.copy(isDone = isChecked))
+        viewModelScope.launch {
+            val item = repository.getItemById(id)
+            if (item != null) {
+                repository.updateItem(
+                    item.copy(isDone = isChecked, changeDate = Instant.now())
+                )
+            }
+        }
+    }
+
+    fun invertCheckedState(id: String) {
+        viewModelScope.launch {
+            val item = repository.getItemById(id)
+            if (item != null) {
+                repository.updateItem(
+                    item.copy(isDone = !item.isDone, changeDate = Instant.now())
+                )
+            }
         }
     }
 
@@ -70,7 +106,13 @@ class MainScreenViewModel(
     }
 
     fun removeItem(id: String) {
-        repository.removeItem(id)
+        viewModelScope.launch {
+            repository.removeItem(id)
+        }
+    }
+
+    fun onMessageShown() {
+        repository.clearError()
     }
 
     companion object {

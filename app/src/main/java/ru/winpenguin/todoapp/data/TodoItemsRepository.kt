@@ -1,224 +1,279 @@
 package ru.winpenguin.todoapp.data
 
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import ru.winpenguin.todoapp.domain.models.Deadline
-import ru.winpenguin.todoapp.domain.models.Importance
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import retrofit2.Response
+import ru.winpenguin.todoapp.data.RequestType.*
+import ru.winpenguin.todoapp.data.db.ChangeType.*
+import ru.winpenguin.todoapp.data.db.ChangedItemEntity
+import ru.winpenguin.todoapp.data.db.ItemChangeDao
+import ru.winpenguin.todoapp.data.db.TodoDao
+import ru.winpenguin.todoapp.data.network.*
+import ru.winpenguin.todoapp.data.network.NetworkError.*
+import ru.winpenguin.todoapp.data.network.models.SingleTodoItemDto
 import ru.winpenguin.todoapp.domain.models.TodoItem
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
 
-class TodoItemsRepository {
+class TodoItemsRepository(
+    private val todoDao: TodoDao,
+    private val itemChangeDao: ItemChangeDao,
+    private val todoApi: TodoApi,
+    private val deviceIdRepository: DeviceIdRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
 
-    private val _items = MutableStateFlow<List<TodoItem>>(emptyList())
-    val items: StateFlow<List<TodoItem>> = _items.asStateFlow()
+    private val scope = CoroutineScope(
+        SupervisorJob() + ioDispatcher + CoroutineName("TodoItemsRepositoryScope")
+    )
+
+    private val revisionFlow = MutableStateFlow<Int?>(null)
+
+    private val _errorFlow = MutableStateFlow<NetworkError?>(null)
+    val errorFlow: Flow<NetworkError> = _errorFlow.filterNotNull()
+
+    val items: Flow<List<TodoItem>> = todoDao.allItemsFlow()
 
     init {
-        _items.value = listOf(
-            TodoItem(
-                id = "1",
-                text = "Купить что-то",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "2",
-                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно",
-                importance = Importance.NORMAL,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 10, 20, 0),
-                deadline = Deadline.Selected(LocalDate.now().minusDays(1))
-            ),
-            TodoItem(
-                id = "3",
-                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно, но точно чтобы показать как обрезается длинный длинный текст",
-                importance = Importance.HIGH,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 13, 2, 0),
-            ),
-            TodoItem(
-                id = "4",
-                text = "Продать что-то",
-                importance = Importance.NORMAL,
-                isDone = true,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 2, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "5",
-                text = "Посмотреть сериал",
-                importance = Importance.HIGH,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.MAY, 27, 13, 4, 0),
-            ),
-            TodoItem(
-                id = "6",
-                text = "Погладить кошку",
-                importance = Importance.HIGH,
-                isDone = true,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 5, 11, 0, 0),
-            ),
-            TodoItem(
-                id = "7",
-                text = "Купить продукты",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "8",
-                text = "Погулять в парке",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "9",
-                text = "Сходить на тренировку",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "10",
-                text = "Пополнить тройку",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 8, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "11",
-                text = "Фьючерсный контракт — это договор между покупателем и продавцом о покупке/продаже какого-то актива в будущем. Стороны заранее оговаривают, через какой срок и по какой цене состоится сделка.\n" +
-                        "\n" +
-                        "Например, сейчас одна акция «Лукойла» стоит около 5700 рублей. Фьючерс на акции «Лукойла» — это, например, договор между покупателем и продавцом о том, что покупатель купит акции «Лукойла» у продавца по цене 5700 рублей через 3 месяца. При этом не важно, какая цена будет у акций через 3 месяца: цена сделки между покупателем и продавцом все равно останется 5700 рублей. Если реальная цена акции через три месяца не останется прежней, одна из сторон в любом случае понесет убытки.",
-                importance = Importance.NORMAL,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 7, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "12",
-                text = "Убраться в квартире",
-                importance = Importance.LOW,
-                isDone = true,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 3, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "13",
-                text = "Купить что-то",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "14",
-                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно",
-                importance = Importance.NORMAL,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 10, 20, 0),
-                changeDate = LocalDateTime.of(2023, Month.JUNE, 5, 11, 18, 0),
-                deadline = Deadline.Selected(LocalDate.now().minusDays(1))
-            ),
-            TodoItem(
-                id = "15",
-                text = "Купить что-то, где-то, зачем-то, но зачем не очень понятно, но точно чтобы показать как обрезается длинный длинный текст",
-                importance = Importance.HIGH,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 13, 2, 0),
-            ),
-            TodoItem(
-                id = "16",
-                text = "Продать что-то",
-                importance = Importance.NORMAL,
-                isDone = true,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 2, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "17",
-                text = "Посмотреть сериал",
-                importance = Importance.HIGH,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.MAY, 27, 13, 4, 0),
-            ),
-            TodoItem(
-                id = "18",
-                text = "Погладить кошку",
-                importance = Importance.HIGH,
-                isDone = true,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 5, 11, 0, 0),
-            ),
-            TodoItem(
-                id = "19",
-                text = "Купить продукты",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "20",
-                text = "Погулять в парке",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 4, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "21",
-                text = "Сходить на тренировку",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 1, 12, 0, 0),
-            ),
-            TodoItem(
-                id = "22",
-                text = "Пополнить тройку",
-                importance = Importance.LOW,
-                isDone = false,
-                creationDate = LocalDateTime.of(2023, Month.JUNE, 8, 12, 0, 0),
-            ),
-        )
-    }
-
-    private fun getItems(): List<TodoItem> {
-        return _items.value
-    }
-
-    fun getItemById(id: String): TodoItem? {
-        return getItems().find { it.id == id }
-    }
-
-    fun addItem(item: TodoItem) {
-        _items.update {
-            _items.value + item
+        scope.launch {
+            updateItems()
         }
     }
 
-    fun updateItem(updatedItem: TodoItem) {
-        _items.update { oldItems ->
-            val itemsList = oldItems.toMutableList()
-            val index = itemsList.indexOfFirst { item -> item.id == updatedItem.id }
-            if (index == -1) {
-                return@update oldItems
+    suspend fun updateItems(): Boolean {
+        return try {
+            val response = todoApi.getAllItems()
+            if (response.isSuccessful && response.body() != null) {
+                val dto = response.body()!!
+                revisionFlow.emit(dto.revision)
+                val remoteTodoItems = dto.list.toDomainModels()
+
+                updateRemoteItemsWithLocalChanges(remoteTodoItems)
+
+                val newResponse = todoApi.getAllItems()
+                if (newResponse.isSuccessful && newResponse.body() != null) {
+                    val newDto = newResponse.body()!!
+                    revisionFlow.emit(newDto.revision)
+                    val newRemoteTodoItems = newDto.list.toDomainModels()
+
+                    val serverIds = newRemoteTodoItems.map { item -> item.id }.toSet()
+                    val dbIds = items.first().map { item -> item.id }.toSet()
+                    val idsToRemove = dbIds.subtract(serverIds)
+                    todoDao.deleteItems(idsToRemove)
+
+                    todoDao.insertItems(newRemoteTodoItems)
+                    true
+                } else {
+                    when (response.code()) {
+                        SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
+                        else -> _errorFlow.emit(OtherError)
+                    }
+                    false
+                }
+            } else {
+                when (response.code()) {
+                    SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
+                    else -> _errorFlow.emit(OtherError)
+                }
+                false
             }
-
-            itemsList.removeAt(index)
-            itemsList.add(index, updatedItem)
-            itemsList.toList()
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
+            false
         }
     }
 
-    fun removeItem(id: String) {
-        _items.update {
-            val currentItems = getItems().toMutableList()
-            val index = currentItems.indexOfFirst { it.id == id }
-            if (index == -1) {
-                return@update getItems()
+    private suspend fun updateRemoteItemsWithLocalChanges(
+        remoteTodoItems: List<TodoItem>
+    ) {
+        val localChangedItems = itemChangeDao.getAllItems().sorted()
+        localChangedItems.forEach { item ->
+            when (item.changeType) {
+                ADD -> {
+                    val localItem = todoDao.getItemById(item.itemId)
+                    if (localItem != null) {
+                        addNetworkItem(localItem)
+                    } else {
+                        itemChangeDao.deleteItem(item.itemId)
+                    }
+                }
+                UPDATE -> {
+                    val remoteItem = remoteTodoItems.firstOrNull { it.id == item.itemId }
+                    if (remoteItem != null) {
+                        val localItem = todoDao.getItemById(item.itemId)
+                        if (localItem != null && localItem.changeDate.isAfter(remoteItem.changeDate)) {
+                            updateNetworkItem(localItem)
+                        } else {
+                            itemChangeDao.deleteItem(item.itemId)
+                        }
+                    } else {
+                        itemChangeDao.deleteItem(item.itemId)
+                    }
+                }
+                REMOVE -> {
+                    val localItem = todoDao.getItemById(item.itemId)
+                    if (localItem != null) {
+                        removeNetworkItem(item.itemId)
+                    } else {
+                        itemChangeDao.deleteItem(item.itemId)
+                    }
+                }
+
             }
-
-            currentItems.removeAt(index)
-            currentItems.toList()
-
         }
     }
+
+    suspend fun getItemById(id: String): TodoItem? {
+        return withContext(ioDispatcher) {
+            todoDao.getItemById(id)
+        }
+    }
+
+    suspend fun addItem(item: TodoItem) {
+        scope.launch {
+            todoDao.insertItem(item)
+            itemChangeDao.insertItem(
+                ChangedItemEntity(
+                    itemId = item.id,
+                    changeType = ADD
+                )
+            )
+            addNetworkItem(item)
+        }
+    }
+
+    private suspend fun addNetworkItem(item: TodoItem) {
+        try {
+            val response = todoApi.addNewItem(
+                revision = getRevision(),
+                item = SingleTodoItemDto(
+                    element = item.toDto(deviceIdRepository.getDeviceId()),
+                    revision = getRevision()
+                )
+            )
+            handleResponse(
+                response = response,
+                requestType = AddItem(item)
+            )
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
+        }
+    }
+
+    suspend fun updateItem(updatedItem: TodoItem) {
+        scope.launch {
+            todoDao.updateItem(updatedItem)
+            itemChangeDao.insertItem(
+                ChangedItemEntity(
+                    itemId = updatedItem.id,
+                    changeType = UPDATE
+                )
+            )
+            updateNetworkItem(updatedItem)
+        }
+    }
+
+    private suspend fun updateNetworkItem(updatedItem: TodoItem) {
+        try {
+            val response = todoApi.changeItem(
+                revision = getRevision(),
+                id = updatedItem.id,
+                item = SingleTodoItemDto(
+                    element = updatedItem.toDto(deviceIdRepository.getDeviceId()),
+                    revision = getRevision()
+                )
+            )
+            handleResponse(
+                response = response,
+                requestType = UpdateItem(updatedItem)
+            )
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
+        }
+    }
+
+    suspend fun removeItem(id: String) {
+        scope.launch {
+            todoDao.deleteItem(id)
+            itemChangeDao.insertItem(
+                ChangedItemEntity(
+                    itemId = id,
+                    changeType = REMOVE
+                )
+            )
+            removeNetworkItem(id)
+        }
+    }
+
+    private suspend fun removeNetworkItem(id: String) {
+        try {
+            val response = todoApi.deleteItem(
+                revision = getRevision(),
+                id = id
+            )
+            handleResponse(
+                response = response,
+                requestType = RemoveItem(id)
+            )
+        } catch (e: Exception) {
+            _errorFlow.emit(ConnectionError)
+        }
+    }
+
+    private suspend fun handleResponse(
+        response: Response<SingleTodoItemDto>,
+        requestType: RequestType
+    ) {
+        if (response.isSuccessful && response.body() != null) {
+            itemChangeDao.deleteItem(response.body()!!.element.id)
+            revisionFlow.emit(response.body()?.revision)
+        } else {
+            when (response.code()) {
+                SC_INCORRECT_REQUEST,
+                SC_ITEM_NOT_FOUND -> {
+                    updateItems()
+                    val newResponse = when (requestType) {
+                        is AddItem -> todoApi.addNewItem(
+                            revision = getRevision(),
+                            item = SingleTodoItemDto(
+                                element = requestType.item.toDto(deviceIdRepository.getDeviceId()),
+                                revision = getRevision()
+                            )
+                        )
+                        is UpdateItem -> todoApi.changeItem(
+                            revision = getRevision(),
+                            id = requestType.item.id,
+                            item = SingleTodoItemDto(
+                                element = requestType.item.toDto(deviceIdRepository.getDeviceId()),
+                                revision = getRevision()
+                            )
+                        )
+                        is RemoveItem -> todoApi.deleteItem(
+                            revision = getRevision(),
+                            id = requestType.id
+                        )
+                    }
+                    if (newResponse.isSuccessful && newResponse.body() != null) {
+                        revisionFlow.emit(newResponse.body()?.revision)
+                    } else {
+                        when (requestType) {
+                            is AddItem -> _errorFlow.emit(AddItemError)
+                            is UpdateItem -> _errorFlow.emit(UpdateItemError)
+                            is RemoveItem -> _errorFlow.emit(RemoveItemError)
+                        }
+                    }
+                    itemChangeDao.deleteItem(response.body()!!.element.id)
+                }
+                SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
+                else -> _errorFlow.emit(OtherError)
+            }
+        }
+    }
+
+    fun clearError() {
+        _errorFlow.tryEmit(null)
+    }
+
+    private suspend fun getRevision(): Int = revisionFlow.filterNotNull().first()
 }

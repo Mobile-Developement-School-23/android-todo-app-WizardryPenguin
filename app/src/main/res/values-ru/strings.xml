@@ -10,4 +10,10 @@
     <string name="low">Низкая</string>
     <string name="high">Высокая</string>
     <string name="done_count">Выполнено — %1$d</string>
+    <string name="no_network">Ошибка синхронизации. Проверьте Интернет соединение.</string>
+    <string name="authorization_error">Ошибка авторизации. Обратитесь в службу поддержки.</string>
+    <string name="other_error">Сегодня не твой день, что-то пошло  не так…</string>
+    <string name="add_item_error">Ошибка при добавлении дела</string>
+    <string name="update_item_error">Ошибка при обновлении дела</string>
+    <string name="remove_item_error">Ошибка при удалении дела</string>
 </resources>
