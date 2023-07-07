@@ -6,6 +6,9 @@ import ru.winpenguin.todoapp.BuildConfig
 import java.io.IOException
 import javax.inject.Inject
 
+/**
+ * Добавляет авторизационный заголовок в сетевые запросы
+ */
 class AuthInterceptor @Inject constructor() : Interceptor {
 
     private val token = BuildConfig.apiToken

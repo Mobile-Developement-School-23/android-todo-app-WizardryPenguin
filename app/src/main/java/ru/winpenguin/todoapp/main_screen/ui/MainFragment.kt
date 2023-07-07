@@ -22,6 +22,9 @@ import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentMainBinding
 import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 
+/**
+ * Отображает список дел, ошибок
+ */
 class MainFragment : Fragment() {
 
     private lateinit var viewModel: MainScreenViewModel

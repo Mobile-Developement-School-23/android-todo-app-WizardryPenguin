@@ -21,6 +21,11 @@ import ru.winpenguin.todoapp.data.network.NetworkError.UpdateItemError
 import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
 import java.time.Instant
 
+/**
+ * Хранит состояние основного экрана дела.
+ * Обрабатывает действия пользователя на экране: изменяет дела и выдает ошибку,
+ * когда есть неполадки при совершении действия
+ */
 class MainScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: TodoItemUiStateMapper,

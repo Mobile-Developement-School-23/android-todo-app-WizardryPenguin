@@ -19,7 +19,9 @@ import ru.winpenguin.todoapp.MainActivity
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentDetailsBinding
 import ru.winpenguin.todoapp.domain.models.Importance
-
+/**
+ * Отображает детальную информацию о деле с возможностью редактирования
+ */
 class DetailsFragment : Fragment() {
 
     private lateinit var viewModel: DetailsScreenViewModel
@@ -37,7 +39,10 @@ class DetailsFragment : Fragment() {
         val viewModelFactory =
             (requireActivity() as MainActivity).activityComponent.viewModelFactory
         viewModel =
-            ViewModelProvider(this, viewModelFactory)[DetailsScreenViewModel::class.java]
+            ViewModelProvider(
+                requireActivity(),
+                viewModelFactory
+            )[DetailsScreenViewModel::class.java]
     }
 
     override fun onCreateView(

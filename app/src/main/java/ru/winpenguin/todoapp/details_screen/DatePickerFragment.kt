@@ -15,6 +15,9 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+/**
+ * Отображает диалог выбора даты дедлайна
+ */
 class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
 
     private lateinit var detailsViewModel: DetailsScreenViewModel
@@ -24,7 +27,10 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
         val viewModelFactory =
             (requireActivity() as MainActivity).activityComponent.viewModelFactory
         detailsViewModel =
-            ViewModelProvider(this, viewModelFactory)[DetailsScreenViewModel::class.java]
+            ViewModelProvider(
+                requireActivity(),
+                viewModelFactory
+            )[DetailsScreenViewModel::class.java]
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

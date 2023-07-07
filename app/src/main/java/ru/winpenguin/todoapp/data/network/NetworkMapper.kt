@@ -4,6 +4,10 @@ import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import java.time.Instant
 
+/**
+ * Функции для маппинга из сетевых моделей в доменные и наоборот
+ */
+
 fun TodoItemDto.toDomainModel(): TodoItem {
     return TodoItem(
         id = id,

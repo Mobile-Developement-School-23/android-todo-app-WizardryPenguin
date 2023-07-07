@@ -8,6 +8,9 @@ import ru.winpenguin.todoapp.di.IoDispatcher
 import java.util.UUID
 import javax.inject.Inject
 
+/**
+ * Создает и возвращает id устройства
+ */
 class DeviceIdRepository @Inject constructor(
     private val sharedPreferences: SharedPreferences,
     @IoDispatcher

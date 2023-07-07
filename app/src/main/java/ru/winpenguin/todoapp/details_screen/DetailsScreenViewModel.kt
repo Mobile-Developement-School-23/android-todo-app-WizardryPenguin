@@ -19,6 +19,10 @@ import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.Instant
 import java.util.UUID
 
+/**
+ * Хранит состояние экрана деталей дела,
+ * Обрабатывает действия пользователя на данном экране, изменяя дела
+ */
 class DetailsScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: DetailsScreenUiStateMapper,
@@ -50,31 +54,37 @@ class DetailsScreenViewModel(
         viewModelScope.launch(defaultDispatcher) {
             val id = itemId
             if (id == null) {
-                val creationDate = Instant.now()
-                val newItem = TodoItem(
-                    id = UUID.randomUUID().toString(),
-                    text = text,
-                    importance = _uiState.value.importance,
-                    isDone = false,
-                    creationDate = creationDate,
-                    changeDate = creationDate,
-                    deadline = deadline
-                )
+                val newItem = createTodoItem(text)
                 repository.addItem(newItem)
             } else {
-                val item = repository.getItemById(id)
-                if (item != null) {
-                    repository.updateItem(
-                        item.copy(
-                            text = uiState.value.text,
-                            importance = uiState.value.importance,
-                            changeDate = Instant.now(),
-                            deadline = deadline
-                        )
-                    )
-                }
+                updateTodoItem(id)
             }
         }
+    }
+
+    private suspend fun updateTodoItem(id: String) {
+        val item = repository.getItemById(id) ?: return
+        repository.updateItem(
+            item.copy(
+                text = uiState.value.text,
+                importance = uiState.value.importance,
+                changeDate = Instant.now(),
+                deadline = deadline
+            )
+        )
+    }
+
+    private fun createTodoItem(text: String): TodoItem {
+        val creationDate = Instant.now()
+        return TodoItem(
+            id = UUID.randomUUID().toString(),
+            text = text,
+            importance = _uiState.value.importance,
+            isDone = false,
+            creationDate = creationDate,
+            changeDate = creationDate,
+            deadline = deadline
+        )
     }
 
     fun changeImportance(position: Int) {
