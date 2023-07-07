@@ -13,6 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.winpenguin.todoapp.databinding.TodoItemBinding
 import ru.winpenguin.todoapp.utils.getColorFromAttr
 
+/**
+ * Адаптер для RecyclerView
+ */
 class TodoAdapter(
     private val onItemChecked: (String, Boolean) -> Unit,
     private val onItemClicked: (String) -> Unit,
@@ -39,12 +42,12 @@ class TodoAdapter(
         payloads: MutableList<Any>
     ) {
         if (payloads.isEmpty()) {
-            super.onBindViewHolder(holder, position, payloads)
-        } else {
-            val backgroundRes = payloads[0] as? Int
-            if (backgroundRes != null) {
-                holder.bindBackground(backgroundRes)
-            }
+            return super.onBindViewHolder(holder, position, payloads)
+        }
+
+        val backgroundRes = payloads[0] as? Int
+        if (backgroundRes != null) {
+            holder.bindBackground(backgroundRes)
         }
     }
 

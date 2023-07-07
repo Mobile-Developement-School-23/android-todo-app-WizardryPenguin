@@ -5,8 +5,12 @@ import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.Instant
+import javax.inject.Inject
 
-class TodoItemUiStateMapper(
+/**
+ * Преобразует данные из доменной модели для ui модели дела
+ */
+class TodoItemUiStateMapper @Inject constructor(
     private val dateFormatter: DateFormatter,
 ) {
 

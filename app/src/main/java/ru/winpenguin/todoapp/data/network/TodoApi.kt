@@ -7,6 +7,9 @@ import ru.winpenguin.todoapp.data.network.models.TodoItemsListDto
 
 const val LAST_KNOWN_REVISION_HEADER = "X-Last-Known-Revision"
 
+/**
+ * Выполняет сетевые запросы на бекенд
+ */
 interface TodoApi {
 
     @GET("todobackend/list")

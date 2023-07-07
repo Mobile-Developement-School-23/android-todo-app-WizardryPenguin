@@ -1,27 +1,31 @@
 package ru.winpenguin.todoapp
 
-import android.net.ConnectivityManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.work.*
-import ru.winpenguin.todoapp.data.TodoItemsRepository
-import ru.winpenguin.todoapp.data.db.ItemChangeDao
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import ru.winpenguin.todoapp.databinding.ActivityMainBinding
+import ru.winpenguin.todoapp.di.main_activity_component.MainActivityComponent
+import ru.winpenguin.todoapp.workers.SyncWorker
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
-    private val connectivityManager: ConnectivityManager
-        get() = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
-    private val todoItemsRepository: TodoItemsRepository
-        get() = (application as TodoApp).todoItemsRepository
-    private val itemChangeDao: ItemChangeDao
-        get() = (application as TodoApp).itemChangeDao
-    private val networkSyncListener by lazy {
-        NetworkSyncListener(connectivityManager, todoItemsRepository, itemChangeDao)
-    }
+    @Inject
+    lateinit var networkSyncListener: NetworkSyncListener
+
+    lateinit var activityComponent: MainActivityComponent
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        activityComponent = (application as TodoApp).appComponent
+            .mainActivityComponent()
+            .create(this)
+        activityComponent.inject(this)
+
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

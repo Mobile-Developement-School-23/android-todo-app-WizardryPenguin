@@ -1,8 +1,12 @@
 package ru.winpenguin.todoapp.details_screen
 
 import ru.winpenguin.todoapp.domain.models.TodoItem
+import javax.inject.Inject
 
-class DetailsScreenUiStateMapper {
+/**
+ * Преобразует данные из доменной модели в ui модель для детального экрана
+ */
+class DetailsScreenUiStateMapper @Inject constructor() {
 
     fun map(item: TodoItem?): DetailsScreenUiState {
         return if (item == null) {

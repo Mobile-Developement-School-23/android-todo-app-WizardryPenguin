@@ -5,6 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
+/**
+ * Обеспечивает работу с базой данных измененных дел
+ */
 @Dao
 interface ItemChangeDao {
 

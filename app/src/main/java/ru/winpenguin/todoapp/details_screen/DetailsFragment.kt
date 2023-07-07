@@ -1,5 +1,6 @@
 package ru.winpenguin.todoapp.details_screen
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,21 +9,22 @@ import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import ru.winpenguin.todoapp.MainActivity
 import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.databinding.FragmentDetailsBinding
 import ru.winpenguin.todoapp.domain.models.Importance
-
+/**
+ * Отображает детальную информацию о деле с возможностью редактирования
+ */
 class DetailsFragment : Fragment() {
 
-    private val viewModel by activityViewModels<DetailsScreenViewModel> {
-        DetailsScreenViewModel.Factory
-    }
+    private lateinit var viewModel: DetailsScreenViewModel
 
     private var _binding: FragmentDetailsBinding? = null
     private val binding get() = _binding!!
@@ -31,6 +33,17 @@ class DetailsFragment : Fragment() {
         get() = arguments?.getString("id")
 
     private var isTextSet = false
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val viewModelFactory =
+            (requireActivity() as MainActivity).activityComponent.viewModelFactory
+        viewModel =
+            ViewModelProvider(
+                requireActivity(),
+                viewModelFactory
+            )[DetailsScreenViewModel::class.java]
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,12 +82,13 @@ class DetailsFragment : Fragment() {
             when (viewModel.deadline) {
                 null -> findNavController()
                     .navigate(DetailsFragmentDirections.actionDetailsFragmentToDatePickerFragment())
+
                 else -> viewModel.clearDeadline()
             }
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.deadlineFlow
                     .collect { deadline ->
                         binding.deadlineSwitch.isChecked = deadline != null
@@ -85,7 +99,7 @@ class DetailsFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     if (!isTextSet) {
                         isTextSet = true

@@ -1,26 +1,35 @@
 package ru.winpenguin.todoapp.main_screen.ui
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.winpenguin.todoapp.R
-import ru.winpenguin.todoapp.TodoApp
 import ru.winpenguin.todoapp.data.TodoItemsRepository
-import ru.winpenguin.todoapp.data.network.NetworkError.*
+import ru.winpenguin.todoapp.data.network.NetworkError.AddItemError
+import ru.winpenguin.todoapp.data.network.NetworkError.AuthorizationError
+import ru.winpenguin.todoapp.data.network.NetworkError.ConnectionError
+import ru.winpenguin.todoapp.data.network.NetworkError.OtherError
+import ru.winpenguin.todoapp.data.network.NetworkError.RemoveItemError
+import ru.winpenguin.todoapp.data.network.NetworkError.UpdateItemError
 import ru.winpenguin.todoapp.main_screen.ui.MainScreenEvent.ShowMessage
-import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.Instant
 
+/**
+ * Хранит состояние основного экрана дела.
+ * Обрабатывает действия пользователя на экране: изменяет дела и выдает ошибку,
+ * когда есть неполадки при совершении действия
+ */
 class MainScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: TodoItemUiStateMapper,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val doneItemsCount = MutableStateFlow(0)
@@ -113,21 +122,5 @@ class MainScreenViewModel(
 
     fun onMessageShown() {
         repository.clearError()
-    }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val application = checkNotNull(extras[APPLICATION_KEY])
-                val repository = (application as TodoApp).todoItemsRepository
-
-                return MainScreenViewModel(
-                    repository,
-                    TodoItemUiStateMapper(DateFormatter())
-                ) as T
-            }
-        }
     }
 }

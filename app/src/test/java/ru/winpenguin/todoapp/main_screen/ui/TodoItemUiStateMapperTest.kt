@@ -6,7 +6,10 @@ import ru.winpenguin.todoapp.R
 import ru.winpenguin.todoapp.TestLocales.RUSSIAN_LOCALE
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
-import ru.winpenguin.todoapp.main_screen.ui.ItemPosition.*
+import ru.winpenguin.todoapp.main_screen.ui.ItemPosition.FIRST
+import ru.winpenguin.todoapp.main_screen.ui.ItemPosition.LAST
+import ru.winpenguin.todoapp.main_screen.ui.ItemPosition.MIDDLE
+import ru.winpenguin.todoapp.main_screen.ui.ItemPosition.ONLY
 import ru.winpenguin.todoapp.utils.DateFormatter
 import java.time.Instant
 import java.time.ZoneId
@@ -26,7 +29,8 @@ class TodoItemUiStateMapperTest {
             isDone = false,
             text = "Text",
             importance = Importance.LOW,
-            creationDate = Instant.parse("2023-06-01T12:00:00Z")
+            creationDate = Instant.parse("2023-06-01T12:00:00Z"),
+            changeDate = Instant.parse("2023-06-01T12:00:00Z")
         )
 
         val uiState = sut.map(item, MIDDLE)
@@ -56,6 +60,7 @@ class TodoItemUiStateMapperTest {
             text = "Text",
             importance = Importance.HIGH,
             creationDate = Instant.parse("2023-06-01T12:00:00Z"),
+            changeDate = Instant.parse("2023-06-01T12:00:00Z"),
             deadline = Instant.parse("2023-06-07T12:00:00Z")
         )
 
@@ -86,6 +91,7 @@ class TodoItemUiStateMapperTest {
             text = "Text",
             importance = Importance.NORMAL,
             creationDate = Instant.parse("2023-06-01T12:00:00Z"),
+            changeDate = Instant.parse("2023-06-01T12:00:00Z"),
             deadline = Instant.parse("2023-06-02T12:00:00Z")
         )
 

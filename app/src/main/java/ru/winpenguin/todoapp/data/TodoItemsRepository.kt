@@ -1,34 +1,64 @@
 package ru.winpenguin.todoapp.data
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Response
-import ru.winpenguin.todoapp.data.RequestType.*
-import ru.winpenguin.todoapp.data.db.ChangeType.*
+import ru.winpenguin.todoapp.data.RequestType.AddItem
+import ru.winpenguin.todoapp.data.RequestType.RemoveItem
+import ru.winpenguin.todoapp.data.RequestType.UpdateItem
+import ru.winpenguin.todoapp.data.db.ChangeType.ADD
+import ru.winpenguin.todoapp.data.db.ChangeType.REMOVE
+import ru.winpenguin.todoapp.data.db.ChangeType.UPDATE
 import ru.winpenguin.todoapp.data.db.ChangedItemEntity
 import ru.winpenguin.todoapp.data.db.ItemChangeDao
 import ru.winpenguin.todoapp.data.db.TodoDao
-import ru.winpenguin.todoapp.data.network.*
-import ru.winpenguin.todoapp.data.network.NetworkError.*
+import ru.winpenguin.todoapp.data.network.NetworkError
+import ru.winpenguin.todoapp.data.network.NetworkError.AddItemError
+import ru.winpenguin.todoapp.data.network.NetworkError.AuthorizationError
+import ru.winpenguin.todoapp.data.network.NetworkError.ConnectionError
+import ru.winpenguin.todoapp.data.network.NetworkError.OtherError
+import ru.winpenguin.todoapp.data.network.NetworkError.RemoveItemError
+import ru.winpenguin.todoapp.data.network.NetworkError.UpdateItemError
+import ru.winpenguin.todoapp.data.network.RevisionRepository
+import ru.winpenguin.todoapp.data.network.SC_INCORRECT_AUTHORIZATION
+import ru.winpenguin.todoapp.data.network.SC_INCORRECT_REQUEST
+import ru.winpenguin.todoapp.data.network.SC_ITEM_NOT_FOUND
+import ru.winpenguin.todoapp.data.network.TodoApi
 import ru.winpenguin.todoapp.data.network.models.SingleTodoItemDto
+import ru.winpenguin.todoapp.data.network.toDomainModels
+import ru.winpenguin.todoapp.data.network.toDto
+import ru.winpenguin.todoapp.di.IoDispatcher
 import ru.winpenguin.todoapp.domain.models.TodoItem
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TodoItemsRepository(
+/**
+ * Синхронизирует локальные данные с сетевыми данными,
+ * Обновляет, добавляет, удаляет дела
+ * Является источником данных о делах для приложения
+ */
+@Singleton
+class TodoItemsRepository @Inject constructor(
     private val todoDao: TodoDao,
     private val itemChangeDao: ItemChangeDao,
     private val todoApi: TodoApi,
     private val deviceIdRepository: DeviceIdRepository,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val revisionRepository: RevisionRepository,
+    @IoDispatcher
+    private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val scope = CoroutineScope(
         SupervisorJob() + ioDispatcher + CoroutineName("TodoItemsRepositoryScope")
     )
-
-    private val revisionFlow = MutableStateFlow<Int?>(null)
 
     private val _errorFlow = MutableStateFlow<NetworkError?>(null)
     val errorFlow: Flow<NetworkError> = _errorFlow.filterNotNull()
@@ -46,7 +76,7 @@ class TodoItemsRepository(
             val response = todoApi.getAllItems()
             if (response.isSuccessful && response.body() != null) {
                 val dto = response.body()!!
-                revisionFlow.emit(dto.revision)
+                revisionRepository.setRevision(dto.revision)
                 val remoteTodoItems = dto.list.toDomainModels()
 
                 updateRemoteItemsWithLocalChanges(remoteTodoItems)
@@ -54,7 +84,7 @@ class TodoItemsRepository(
                 val newResponse = todoApi.getAllItems()
                 if (newResponse.isSuccessful && newResponse.body() != null) {
                     val newDto = newResponse.body()!!
-                    revisionFlow.emit(newDto.revision)
+                    updateRevision(newDto.revision)
                     val newRemoteTodoItems = newDto.list.toDomainModels()
 
                     val serverIds = newRemoteTodoItems.map { item -> item.id }.toSet()
@@ -98,6 +128,7 @@ class TodoItemsRepository(
                         itemChangeDao.deleteItem(item.itemId)
                     }
                 }
+
                 UPDATE -> {
                     val remoteItem = remoteTodoItems.firstOrNull { it.id == item.itemId }
                     if (remoteItem != null) {
@@ -111,6 +142,7 @@ class TodoItemsRepository(
                         itemChangeDao.deleteItem(item.itemId)
                     }
                 }
+
                 REMOVE -> {
                     val localItem = todoDao.getItemById(item.itemId)
                     if (localItem != null) {
@@ -227,7 +259,7 @@ class TodoItemsRepository(
     ) {
         if (response.isSuccessful && response.body() != null) {
             itemChangeDao.deleteItem(response.body()!!.element.id)
-            revisionFlow.emit(response.body()?.revision)
+            updateRevision(response.body()!!.revision)
         } else {
             when (response.code()) {
                 SC_INCORRECT_REQUEST,
@@ -241,6 +273,7 @@ class TodoItemsRepository(
                                 revision = getRevision()
                             )
                         )
+
                         is UpdateItem -> todoApi.changeItem(
                             revision = getRevision(),
                             id = requestType.item.id,
@@ -249,13 +282,14 @@ class TodoItemsRepository(
                                 revision = getRevision()
                             )
                         )
+
                         is RemoveItem -> todoApi.deleteItem(
                             revision = getRevision(),
                             id = requestType.id
                         )
                     }
                     if (newResponse.isSuccessful && newResponse.body() != null) {
-                        revisionFlow.emit(newResponse.body()?.revision)
+                        updateRevision(newResponse.body()!!.revision)
                     } else {
                         when (requestType) {
                             is AddItem -> _errorFlow.emit(AddItemError)
@@ -265,6 +299,7 @@ class TodoItemsRepository(
                     }
                     itemChangeDao.deleteItem(response.body()!!.element.id)
                 }
+
                 SC_INCORRECT_AUTHORIZATION -> _errorFlow.emit(AuthorizationError)
                 else -> _errorFlow.emit(OtherError)
             }
@@ -272,8 +307,14 @@ class TodoItemsRepository(
     }
 
     fun clearError() {
-        _errorFlow.tryEmit(null)
+        scope.launch {
+            _errorFlow.emit(null)
+        }
     }
 
-    private suspend fun getRevision(): Int = revisionFlow.filterNotNull().first()
+    private fun getRevision(): Int = revisionRepository.getRevision()
+
+    private fun updateRevision(revision: Int) {
+        revisionRepository.setRevision(revision)
+    }
 }
