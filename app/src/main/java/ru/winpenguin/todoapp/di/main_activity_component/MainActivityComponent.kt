@@ -6,7 +6,9 @@ import dagger.Subcomponent
 import ru.winpenguin.todoapp.MainActivity
 import ru.winpenguin.todoapp.common.ViewModelFactory
 import javax.inject.Qualifier
+import javax.inject.Scope
 
+@Scope
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ActivityComponent
 

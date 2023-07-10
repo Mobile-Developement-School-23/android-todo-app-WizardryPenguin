@@ -10,9 +10,12 @@ import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.details_screen.DetailsScreenUiStateMapper
 import ru.winpenguin.todoapp.details_screen.DetailsScreenViewModel
 import ru.winpenguin.todoapp.di.DefaultDispatcher
-import ru.winpenguin.todoapp.main_screen.ui.MainScreenViewModel
-import ru.winpenguin.todoapp.main_screen.ui.TodoItemUiStateMapper
+import ru.winpenguin.todoapp.main_screen.MainScreenViewModel
+import ru.winpenguin.todoapp.main_screen.TodoItemUiStateMapper
+import ru.winpenguin.todoapp.settings_screen.SettingsViewModel
+import ru.winpenguin.todoapp.theme.ThemeRepository
 import ru.winpenguin.todoapp.utils.DateFormatter
+import ru.winpenguin.todoapp.utils.ZoneIdProvider
 import kotlin.reflect.KClass
 
 @MapKey
@@ -45,6 +48,7 @@ object ViewModelModule {
         repository: TodoItemsRepository,
         detailsScreenUiStateMapper: DetailsScreenUiStateMapper,
         dateFormatter: DateFormatter,
+        zoneIdProvider: ZoneIdProvider,
         @DefaultDispatcher
         defaultDispatcher: CoroutineDispatcher
     ): ViewModel {
@@ -52,7 +56,19 @@ object ViewModelModule {
             repository = repository,
             mapper = detailsScreenUiStateMapper,
             dateFormatter = dateFormatter,
+            zoneIdProvider = zoneIdProvider,
             defaultDispatcher = defaultDispatcher
+        )
+    }
+
+    @IntoMap
+    @ViewModelKey(SettingsViewModel::class)
+    @Provides
+    fun provideSettingsScreenViewModel(
+        themeRepository: ThemeRepository,
+    ): ViewModel {
+        return SettingsViewModel(
+            themeRepository = themeRepository,
         )
     }
 }
