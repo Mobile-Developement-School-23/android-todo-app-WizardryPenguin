@@ -2,7 +2,6 @@ package ru.winpenguin.todoapp.data.network
 
 import okhttp3.Interceptor
 import okhttp3.Response
-import ru.winpenguin.todoapp.BuildConfig
 import java.io.IOException
 import javax.inject.Inject
 
@@ -11,7 +10,9 @@ import javax.inject.Inject
  */
 class AuthInterceptor @Inject constructor() : Interceptor {
 
-    private val token = BuildConfig.apiToken
+    // Было сделано через BuildConfig.apiToken,
+    // но для упрощения запуска при проверке домашки - захардкодила
+    private val token = "squeak"
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
