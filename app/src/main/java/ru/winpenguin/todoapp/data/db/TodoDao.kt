@@ -4,7 +4,9 @@ import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import ru.winpenguin.todoapp.domain.models.TodoItem
 
-
+/**
+ * Обеспечивает работу с базой данных дел
+ */
 @Dao
 interface TodoDao {
 

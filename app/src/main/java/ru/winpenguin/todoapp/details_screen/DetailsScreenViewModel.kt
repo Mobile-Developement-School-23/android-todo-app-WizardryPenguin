@@ -1,105 +1,96 @@
 package ru.winpenguin.todoapp.details_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.winpenguin.todoapp.*
 import ru.winpenguin.todoapp.data.TodoItemsRepository
 import ru.winpenguin.todoapp.domain.models.Importance
 import ru.winpenguin.todoapp.domain.models.TodoItem
 import ru.winpenguin.todoapp.utils.DateFormatter
+import ru.winpenguin.todoapp.utils.ZoneIdProvider
 import java.time.Instant
-import java.util.*
+import java.time.LocalDate
+import java.util.UUID
 
+/**
+ * Хранит состояние экрана деталей дела,
+ * Обрабатывает действия пользователя на данном экране, изменяя дела
+ */
 class DetailsScreenViewModel(
     private val repository: TodoItemsRepository,
     private val mapper: DetailsScreenUiStateMapper,
     private val dateFormatter: DateFormatter,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val zoneIdProvider: ZoneIdProvider,
+    private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     @Volatile
     private var itemId: String? = null
 
     private val _uiState = MutableStateFlow(DetailsScreenUiState())
-    val uiState: StateFlow<DetailsScreenUiState>
+    val uiState: Flow<DetailsScreenUiState>
         get() = _uiState.asStateFlow()
+            .onEach { Log.d("TAG", "emit $it") }
 
-    var deadline: Instant? = null
-        private set
-    private val deadlineTrigger = MutableSharedFlow<Unit>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    val deadlineFlow = deadlineTrigger
-        .map {
-            val deadline = deadline
-            deadline?.let { dateFormatter.formatDate(deadline) }
-        }
-        .flowOn(defaultDispatcher)
+    private var deadline: Instant? = null
 
-    fun saveTodoItem(text: String) {
+    fun saveTodoItem() {
         viewModelScope.launch(defaultDispatcher) {
             val id = itemId
             if (id == null) {
-                val creationDate = Instant.now()
-                val newItem = TodoItem(
-                    id = UUID.randomUUID().toString(),
-                    text = text,
-                    importance = _uiState.value.importance,
-                    isDone = false,
-                    creationDate = creationDate,
-                    changeDate = creationDate,
-                    deadline = deadline
-                )
+                val newItem = createTodoItem()
                 repository.addItem(newItem)
             } else {
-                val item = repository.getItemById(id)
-                if (item != null) {
-                    repository.updateItem(
-                        item.copy(
-                            text = uiState.value.text,
-                            importance = uiState.value.importance,
-                            changeDate = Instant.now(),
-                            deadline = deadline
-                        )
-                    )
-                }
+                updateTodoItem(id)
             }
         }
     }
 
-    fun changeImportance(position: Int) {
-        val importance = when (position) {
-            0 -> Importance.NORMAL
-            1 -> Importance.LOW
-            2 -> Importance.HIGH
-            else -> _uiState.value.importance
-        }
+    private suspend fun updateTodoItem(id: String) {
+        val item = repository.getItemById(id) ?: return
+        repository.updateItem(
+            item.copy(
+                text = _uiState.value.description,
+                importance = _uiState.value.importance,
+                changeDate = Instant.now(),
+                deadline = deadline
+            )
+        )
+    }
+
+    private fun createTodoItem(): TodoItem {
+        val creationDate = Instant.now()
+        return TodoItem(
+            id = UUID.randomUUID().toString(),
+            text = _uiState.value.description,
+            importance = _uiState.value.importance,
+            isDone = false,
+            creationDate = creationDate,
+            changeDate = creationDate,
+            deadline = deadline
+        )
+    }
+
+    fun changeImportance(importance: Importance) {
         _uiState.update {
             it.copy(importance = importance)
         }
     }
 
-    fun selectDeadline(deadline: Instant) {
-        this.deadline = deadline
-        deadlineTrigger.tryEmit(Unit)
-    }
-
-    fun cancelDeadlineSelection() {
-        deadline = null
-        deadlineTrigger.tryEmit(Unit)
-    }
-
-    fun clearDeadline() {
-        deadline = null
-        deadlineTrigger.tryEmit(Unit)
+    fun selectDeadline(deadline: LocalDate) {
+        val instant = deadline.atStartOfDay(zoneIdProvider.zoneId().invoke()).toInstant()
+        this.deadline = instant
+        _uiState.update {
+            it.copy(deadline = dateFormatter.formatDate(instant))
+        }
     }
 
     fun updateCurrentItemId(itemId: String?) {
@@ -110,13 +101,12 @@ class DetailsScreenViewModel(
             _uiState.value = state
 
             deadline = item?.deadline
-            deadlineTrigger.tryEmit(Unit)
         }
     }
 
-    fun textChanged(text: CharSequence?) {
+    fun textChanged(text: String) {
         _uiState.update {
-            it.copy(text = text?.toString().orEmpty())
+            it.copy(description = text)
         }
     }
 
@@ -126,20 +116,27 @@ class DetailsScreenViewModel(
         }
     }
 
-    companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+    fun changeDeadlineChecked(isChecked: Boolean) {
+        _uiState.update {
+            it.copy(
+                isDeadlineChecked = isChecked,
+                isCalendarVisible = isChecked,
+                deadline = if (isChecked) it.deadline else null
+            )
+        }
+        if (!isChecked) {
+            deadline = null
+        }
+    }
 
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val application =
-                    checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
-                val repository = (application as TodoApp).todoItemsRepository
-
-                return DetailsScreenViewModel(
-                    repository,
-                    DetailsScreenUiStateMapper(),
-                    DateFormatter()
-                ) as T
+    fun calendarClosed() {
+        viewModelScope.launch {
+            delay(5)
+            _uiState.update {
+                it.copy(
+                    isDeadlineChecked = deadline != null,
+                    isCalendarVisible = false
+                )
             }
         }
     }

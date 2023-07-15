@@ -16,4 +16,8 @@
     <string name="add_item_error">Ошибка при добавлении дела</string>
     <string name="update_item_error">Ошибка при обновлении дела</string>
     <string name="remove_item_error">Ошибка при удалении дела</string>
+    <string name="settings">Настройки</string>
+    <string name="always_light">Всегда светлая</string>
+    <string name="always_dark">Всегда темная</string>
+    <string name="system">Как в системе</string>
 </resources>

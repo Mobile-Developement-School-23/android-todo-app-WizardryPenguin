@@ -1,5 +1,8 @@
 package ru.winpenguin.todoapp.data.network
 
+/**
+ * Все виды сетевых ошибок
+ */
 sealed interface NetworkError {
     object ConnectionError : NetworkError
 
